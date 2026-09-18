@@ -1,21 +1,26 @@
 import { useEffect, useState } from 'react';
-import { Clock, Users, CalendarDays, CreditCard, BarChart3, LogOut, Settings } from 'lucide-react';
+import {
+  LayoutDashboard, ScanFace, Plane, FileBarChart2,
+  FileSpreadsheet, Settings, CreditCard, LogOut, Users,
+} from 'lucide-react';
 import { api, type Site } from '../api';
 import type { Me } from '../App';
+import { Logo } from '../components/Brand';
+import DashHome from '../components/DashHome';
 import ClockCard from '../components/ClockCard';
+import HistoryTab from '../components/HistoryTab';
 import EmployeesTab from '../components/EmployeesTab';
 import LeavesTab from '../components/LeavesTab';
-import HistoryTab from '../components/HistoryTab';
-import BillingTab from '../components/BillingTab';
-import AnalyticsTab from '../components/AnalyticsTab';
 import SettingsTab from '../components/SettingsTab';
+import BillingTab from '../components/BillingTab';
+import PayrollPage from '../components/PayrollPage';
 
-type Tab = 'clock' | 'analytics' | 'history' | 'employees' | 'leaves' | 'billing' | 'settings';
+type Tab = 'home' | 'clock' | 'history' | 'employees' | 'leaves' | 'payroll' | 'settings' | 'billing';
 
 export default function Dashboard({ me, onLogout, refreshMe }: {
   me: Me; onLogout: () => void; refreshMe: () => Promise<void>;
 }) {
-  const [tab, setTab] = useState<Tab>('clock');
+  const [tab, setTab] = useState<Tab>('home');
   const [sites, setSites] = useState<Site[]>([]);
   const isAdmin = me.role !== 'employee';
 
@@ -23,51 +28,58 @@ export default function Dashboard({ me, onLogout, refreshMe }: {
     api.sites().then((r) => setSites(r.sites)).catch(() => {});
   }, []);
 
-  const tabs: { id: Tab; label: string; icon?: React.ReactNode }[] = [
-    { id: 'clock', label: 'Absen', icon: <Clock size={16} /> },
-    ...(isAdmin ? [{ id: 'analytics' as Tab, label: 'Dashboard', icon: <BarChart3 size={16} /> }] : []),
-    { id: 'history', label: 'Rekap', icon: <CalendarDays size={16} /> },
+  const reloadSites = (): void => { api.sites().then((r) => setSites(r.sites)).catch(() => {}); };
+
+  const nav: { id: Tab; label: string; icon: React.ReactNode }[] = [
+    { id: 'home', label: 'Dashboard', icon: <LayoutDashboard size={17} /> },
+    { id: 'clock', label: 'Absensi', icon: <ScanFace size={17} /> },
+    ...(isAdmin ? [{ id: 'employees' as Tab, label: me.role === 'manager' ? 'Tim Saya' : 'Karyawan', icon: <Users size={17} /> }] : []),
+    { id: 'leaves', label: 'Cuti & Izin', icon: <Plane size={17} /> },
+    { id: 'history', label: 'Laporan', icon: <FileBarChart2 size={17} /> },
     ...(isAdmin ? [
-      { id: 'employees' as Tab, label: 'Karyawan', icon: <Users size={16} /> },
-      { id: 'leaves' as Tab, label: 'Izin', icon: <CalendarDays size={16} /> },
-      { id: 'settings' as Tab, label: 'Pengaturan', icon: <Settings size={16} /> },
-      { id: 'billing' as Tab, label: 'Langganan', icon: <CreditCard size={16} /> },
-    ] : [{ id: 'leaves' as Tab, label: 'Izin Saya', icon: <CalendarDays size={16} /> }]),
+      { id: 'payroll' as Tab, label: 'Payroll', icon: <FileSpreadsheet size={17} /> },
+      { id: 'settings' as Tab, label: 'Pengaturan', icon: <Settings size={17} /> },
+      { id: 'billing' as Tab, label: 'Langganan', icon: <CreditCard size={17} /> },
+    ] : []),
   ];
+
+  const today = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
     <div className="dash">
-      <header className="nav dash-nav">
-        <div className="brand"><span className="brand-mark">P</span> Presensia
-          <span className="org-chip">{me.org.name}</span>
-        </div>
-        <div className="nav-user">
-          <span className="muted">{me.name} · {me.role === 'owner' ? 'Owner' : me.role === 'admin' ? 'Admin' : 'Karyawan'}</span>
-          <button className="btn btn-ghost" onClick={() => { void onLogout(); }}><LogOut size={14} /> Keluar</button>
-        </div>
-      </header>
-
-      {me.org.plan === 'trial' && me.org.planExpiresAt && (
-        <div className="trial-banner">
-          Masa uji coba sampai {new Date(me.org.planExpiresAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-          {sites.length === 0 && ' · belum ada lokasi absen — admin perlu menambahkan lokasi di menu Karyawan'}
-        </div>
-      )}
-
-      <nav className="tabs">
-        {tabs.map((t) => (
-          <button key={t.id} className={`tab ${tab === t.id ? 'tab-active' : ''}`} onClick={() => setTab(t.id)}>
-            {t.icon}{t.label}
+      <aside className="side">
+        <div className="side-brand"><Logo size={26} dark /></div>
+        {nav.map((n) => (
+          <button key={n.id} className={`side-item ${tab === n.id ? 'active' : ''}`} onClick={() => setTab(n.id)}>
+            {n.icon}<span>{n.label}</span>
           </button>
         ))}
-      </nav>
+        <div className="side-footer">
+          <span className="side-ava">{(me.name || me.email)[0].toUpperCase()}</span>
+          <div>
+            <b>{me.name}</b>
+            <span>{me.role === 'owner' ? 'Owner' : me.role === 'admin' ? 'HR Admin' : me.role === 'manager' ? 'Manager' : 'Karyawan'}</span>
+          </div>
+          <button className="icon-btn side-exit" title="Keluar" onClick={() => { void onLogout(); }} style={{ color: '#8FA3B8' }}>
+            <LogOut size={16} />
+          </button>
+        </div>
+      </aside>
 
-      <main className="dash-main">
+      <main className="main">
+        {me.org.plan === 'trial' && me.org.planExpiresAt && (
+          <div className="trial-banner">
+            ⏳ Masa uji coba sampai {new Date(me.org.planExpiresAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+            {sites.length === 0 && ' · belum ada lokasi absen — tambahkan di menu Pengaturan/Karyawan'}
+          </div>
+        )}
+
+        {tab === 'home' && <DashHome me={me} sites={sites} goClock={() => setTab('clock')} today={today} onClocked={refreshMe} />}
         {tab === 'clock' && <ClockCard me={me} sites={sites} onClocked={refreshMe} />}
-        {tab === 'analytics' && <AnalyticsTab />}
-        {tab === 'history' && <HistoryTab me={me} />}
-        {tab === 'employees' && <EmployeesTab sites={sites} onSitesChanged={() => api.sites().then((r) => setSites(r.sites)).catch(() => {})} />}
+        {tab === 'employees' && <EmployeesTab sites={sites} onSitesChanged={reloadSites} />}
         {tab === 'leaves' && <LeavesTab me={me} />}
+        {tab === 'history' && <HistoryTab me={me} />}
+        {tab === 'payroll' && <PayrollPage />}
         {tab === 'settings' && <SettingsTab me={{ role: me.role, email: me.email }} />}
         {tab === 'billing' && <BillingTab me={me} />}
       </main>

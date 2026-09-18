@@ -30,7 +30,7 @@ export default function App() {
 
   if (!me) {
     if (isHash('#/masuk') || isHash('#/daftar')) {
-      return <AuthPage mode={isHash('#/daftar') ? 'register' : 'login'} onAuthed={(m) => { setMe(m); window.location.hash = '#/app'; }} />;
+      return <AuthPage mode={isHash('#/daftar') ? 'register' : 'login'} onAuthed={(m) => { setMe(m as Me); window.location.hash = '#/app'; }} />;
     }
     return <LandingPage />;
   }
