@@ -155,7 +155,6 @@ export default function LandingPage() {
         <div className="lp-hero-copy">
           <h1>Absensi Cerdas<br />Tanpa Celah<br /><em>Kecurangan</em></h1>
           <p className="lp-tagline">Precision. Presence.<br />World-Class Attendance.</p>
-          <p className="lp-sub">Geofencing ketat, verifikasi selfie dengan kode anti-titip-absen, shift lintas tengah malam, dan ekspor payroll — semuanya di satu platform.</p>
           <div className="lp-hero-ctas">
             <a className="btn btn-primary btn-lg" href="#/daftar">Coba Gratis</a>
             <a className="btn btn-secondary btn-lg" onClick={() => scrollTo('features')} href="#features">Lihat Demo</a>

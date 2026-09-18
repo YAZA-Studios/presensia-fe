@@ -359,6 +359,30 @@ label.mini { display: flex; flex-direction: column; gap: 5px; font-size: 12px; f
 .lp-social a:hover { background: var(--teal); color: #fff; }
 .lp-copy { border-top: 1px solid rgba(255, 255, 255, 0.09); margin-top: 34px; padding-top: 20px; text-align: center; font-size: 12.5px; max-width: 1200px; margin-left: auto; margin-right: auto; }
 
+/* Reference landing composition: airy, compact, and image-led like the supplied design. */
+.lp { background: #fff; }
+.lp-nav { max-width: 1100px; margin: 0 auto; position: relative; background: rgba(255,255,255,.92); border-bottom: 0; padding-top: 18px; padding-bottom: 18px; }
+.lp-hero { max-width: 1100px; margin: 0 auto; min-height: 410px; padding-top: 42px; padding-bottom: 54px; grid-template-columns: .86fr 1.14fr; }
+.lp-hero::before { background-image: linear-gradient(rgba(30,111,235,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(30,111,235,.07) 1px, transparent 1px); mask-image: radial-gradient(ellipse 70% 80% at 75% 48%, #000 20%, transparent 78%); }
+.lp-hero h1 { font-size: clamp(34px, 4vw, 48px); line-height: 1.03; }
+.lp-hero h1 em { color: var(--navy-deep); }
+.lp-tagline { color: var(--ink); font-weight: 500; }
+.lp-hero-visual { transform: scale(.88); transform-origin: center right; }
+.lp-partners { background: #d9d9de; color: var(--navy-deep); padding-top: 16px; padding-bottom: 20px; }
+.lp-partners h4 { color: var(--navy-deep); letter-spacing: 0; text-transform: none; font-size: 13px; }
+.lp-partners-row { opacity: .7; }
+.lp-partner { color: var(--navy-deep); font-weight: 600; }
+.lp-section { max-width: 1100px; padding-top: 54px; padding-bottom: 54px; }
+.lp-section > .lp-kicker, .lp-section > .lp-title { display: none; }
+.feat { min-height: 250px; gap: 42px; }
+.feat + .feat { margin-top: 0; }
+.feat:nth-of-type(odd) { background: linear-gradient(90deg, #fff, #f4f8fb); }
+.feat-copy h3 { font-size: clamp(21px, 2.2vw, 27px); }
+.feat-copy p { font-size: 13px; color: var(--ink); }
+.feat-list { display: none; }
+.hiw, .lp-section:has(.uc-grid), .lp-section:has(.testi-grid) { background: #f5f7fa; }
+.lp-cta-wrap { padding-bottom: 54px; }
+
 /* ═══════════════════════════════════════════════════════════════
    AUTH
    ═══════════════════════════════════════════════════════════════ */
