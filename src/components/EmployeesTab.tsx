@@ -6,7 +6,7 @@ export default function EmployeesTab({ sites, onSitesChanged }: {
   sites: Site[]; onSitesChanged: () => void;
 }) {
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', role: 'employee', reportsTo: '' });
   const [siteForm, setSiteForm] = useState({ name: '', lat: '', lng: '', radiusM: '150', address: '' });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -18,8 +18,8 @@ export default function EmployeesTab({ sites, onSitesChanged }: {
     e.preventDefault();
     setBusy(true); setError('');
     try {
-      await api.createEmployee({ ...form, role: 'employee' });
-      setForm({ name: '', email: '', phone: '', password: '' });
+      await api.createEmployee({ ...form, reportsTo: form.reportsTo || undefined });
+      setForm({ name: '', email: '', phone: '', password: '', role: 'employee', reportsTo: '' });
       load();
     } catch (err) { setError(err instanceof ApiError ? err.message : 'Gagal.'); } finally { setBusy(false); }
   };
@@ -54,6 +54,17 @@ export default function EmployeesTab({ sites, onSitesChanged }: {
           <input placeholder="Nama" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
           <input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
           <input placeholder="Sandi awal (min 8)" type="text" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={8} />
+          <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="role-select">
+            <option value="employee">Karyawan</option>
+            <option value="manager">Manager</option>
+            <option value="admin">Admin</option>
+          </select>
+          <select value={form.reportsTo} onChange={(e) => setForm({ ...form, reportsTo: e.target.value })} className="role-select">
+            <option value="">Atasan langsung (opsional)</option>
+            {employees.filter((x) => x.role !== 'employee').map((x) => (
+              <option key={x.email} value={x.email}>{x.name} ({x.role})</option>
+            ))}
+          </select>
           <button className="btn btn-primary" disabled={busy}><Plus size={14} /> Tambah</button>
         </form>
         <table className="table">
@@ -61,7 +72,9 @@ export default function EmployeesTab({ sites, onSitesChanged }: {
           <tbody>
             {employees.map((e) => (
               <tr key={e.email}>
-                <td>{e.name} {e.role !== 'employee' && <span className="badge">{e.role === 'owner' ? 'Owner' : 'Admin'}</span>}</td>
+                <td>{e.name} <span className="badge">{e.role === 'owner' ? 'Owner' : e.role === 'admin' ? 'Admin' : e.role === 'manager' ? 'Manager' : 'Karyawan'}</span>
+                  {e.reportsTo && <div className="muted small">atasan: {employees.find((x) => x.email === e.reportsTo)?.name ?? e.reportsTo}</div>}
+                </td>
                 <td className="muted">{e.email}</td>
                 <td>{e.totalHadir ?? 0}</td>
                 <td>{e.role === 'employee' && <button className="icon-btn" onClick={() => { void removeEmployee(e.email); }}><Trash2 size={14} /></button>}</td>

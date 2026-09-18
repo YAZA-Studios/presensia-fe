@@ -77,6 +77,20 @@ export default function AnalyticsTab() {
         </div>
 
         <div className="card">
+          <h3>Bradford Factor (90 hari) — indikator bolos jangka pendek</h3>
+          <p className="muted small">Skor = S² × D (S = rangkaian sakit terpisah, D = total hari sakit). Skor tinggi = sering sakit 1–2 hari putus-putus — secara operasional lebih merusak daripada sakit panjang.</p>
+          {(sum.bradford?.length ?? 0) === 0 ? <p className="muted">Tidak ada data sakit 90 hari terakhir. 🎉</p> : (
+            <ol className="leader-list">
+              {sum.bradford!.map((b) => (
+                <li key={b.email}><span>{b.name}</span>
+                  <span className="badge status-late">{b.score} <em className="muted small">({b.spells}× / {b.days} hr)</em></span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+
+        <div className="card">
           <h3>Paling Sering Telat (30 hari)</h3>
           {sum.lateLeaders.length === 0 ? <p className="muted">Tidak ada keterlambatan — pertahankan! 🎉</p> : (
             <ol className="leader-list">

@@ -27,6 +27,12 @@ export default function LeavesTab({ me }: { me: Me }) {
     catch (err) { setError(err instanceof ApiError ? err.message : 'Gagal.'); }
   };
 
+  const statusBadge = (l: Leave): React.ReactNode =>
+    l.status === 'pending' ? <span className="badge leave-pending">Menunggu Manager</span>
+      : l.status === 'pending_hr' ? <span className="badge leave-pending">Menunggu HR/Admin</span>
+      : l.status === 'approved' ? <span className="badge leave-approved">Disetujui</span>
+      : <span className="badge leave-rejected">Ditolak</span>;
+
   return (
     <div className="two-col">
       <div className="card">
@@ -44,6 +50,7 @@ export default function LeavesTab({ me }: { me: Me }) {
           <textarea placeholder="Alasan (opsional)" value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} rows={2} />
           <button className="btn btn-primary" disabled={busy}>{busy ? 'Mengirim…' : 'Kirim Pengajuan'}</button>
         </form>
+        <p className="muted small">Pengajuan melebihi batas hari kerja yang diatur admin otomatis butuh persetujuan dua tingkat (manager → HR).</p>
         {error && <div className="error-box">{error}</div>}
       </div>
 
@@ -57,14 +64,14 @@ export default function LeavesTab({ me }: { me: Me }) {
                 {isAdmin && <td>{l.name ?? l.email}</td>}
                 <td>{l.type === 'leave' ? 'Cuti' : l.type === 'sick' ? 'Sakit' : 'Remote'}</td>
                 <td className="muted">{l.dateFrom} → {l.dateTo}</td>
-                <td><span className={`badge leave-${l.status}`}>{l.status === 'pending' ? 'Menunggu' : l.status === 'approved' ? 'Disetujui' : 'Ditolak'}</span></td>
+                <td>{statusBadge(l)}{l.reviewNote && <div className="muted small">{l.reviewNote}</div>}</td>
                 {isAdmin && (
                   <td>{l.status === 'pending' && (
                     <span className="review-btns">
                       <button className="btn btn-primary btn-sm" onClick={() => { void review(l.id, true); }}>Setujui</button>
                       <button className="btn btn-ghost btn-sm" onClick={() => { void review(l.id, false); }}>Tolak</button>
                     </span>
-                  )}</td>
+                  )}{l.status === 'pending_hr' && <span className="muted small">Tingkat 2 (HR)</span>}</td>
                 )}
               </tr>
             ))}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Clock, Users, CalendarDays, CreditCard, BarChart3, LogOut } from 'lucide-react';
+import { Clock, Users, CalendarDays, CreditCard, BarChart3, LogOut, Settings } from 'lucide-react';
 import { api, type Site } from '../api';
 import type { Me } from '../App';
 import ClockCard from '../components/ClockCard';
@@ -8,8 +8,9 @@ import LeavesTab from '../components/LeavesTab';
 import HistoryTab from '../components/HistoryTab';
 import BillingTab from '../components/BillingTab';
 import AnalyticsTab from '../components/AnalyticsTab';
+import SettingsTab from '../components/SettingsTab';
 
-type Tab = 'clock' | 'analytics' | 'history' | 'employees' | 'leaves' | 'billing';
+type Tab = 'clock' | 'analytics' | 'history' | 'employees' | 'leaves' | 'billing' | 'settings';
 
 export default function Dashboard({ me, onLogout, refreshMe }: {
   me: Me; onLogout: () => void; refreshMe: () => Promise<void>;
@@ -29,6 +30,7 @@ export default function Dashboard({ me, onLogout, refreshMe }: {
     ...(isAdmin ? [
       { id: 'employees' as Tab, label: 'Karyawan', icon: <Users size={16} /> },
       { id: 'leaves' as Tab, label: 'Izin', icon: <CalendarDays size={16} /> },
+      { id: 'settings' as Tab, label: 'Pengaturan', icon: <Settings size={16} /> },
       { id: 'billing' as Tab, label: 'Langganan', icon: <CreditCard size={16} /> },
     ] : [{ id: 'leaves' as Tab, label: 'Izin Saya', icon: <CalendarDays size={16} /> }]),
   ];
@@ -66,6 +68,7 @@ export default function Dashboard({ me, onLogout, refreshMe }: {
         {tab === 'history' && <HistoryTab me={me} />}
         {tab === 'employees' && <EmployeesTab sites={sites} onSitesChanged={() => api.sites().then((r) => setSites(r.sites)).catch(() => {})} />}
         {tab === 'leaves' && <LeavesTab me={me} />}
+        {tab === 'settings' && <SettingsTab me={{ role: me.role, email: me.email }} />}
         {tab === 'billing' && <BillingTab me={me} />}
       </main>
     </div>

@@ -35,13 +35,23 @@ export const api = {
   createShift: (d: { name: string; startTime: string; endTime: string; graceMinutes: number }) =>
     request<{ shift: Shift }>('/shifts', { method: 'POST', body: JSON.stringify(d) }),
 
-  clock: (d: { lat: number; lng: number; selfie: string; kind: 'in' | 'out'; note?: string }) =>
+  clock: (d: { lat: number; lng: number; accuracy?: number; selfie: string; kind: 'in' | 'out'; nonce?: string; note?: string }) =>
     request<{ ok: boolean; status?: string; site: string; distM: number }>('/attendance/clock', { method: 'POST', body: JSON.stringify(d) }),
+  challenge: () =>
+    request<{ nonce: string; code: string; expiresInSeconds: number }>('/attendance/challenge', { method: 'POST' }),
+  policy: () => request<{ policy: OrgPolicy }>('/policy'),
+  updatePolicy: (p: Partial<OrgPolicy>) => request<{ policy: OrgPolicy }>('/policy', { method: 'PUT', body: JSON.stringify(p) }),
+  delegations: () => request<{ delegations: Delegation[] }>('/delegations'),
+  createDelegation: (d: { fromEmail: string; toEmail: string; dateFrom: string; dateTo: string }) =>
+    request<{ delegation: Delegation }>('/delegations', { method: 'POST', body: JSON.stringify(d) }),
+  corrections: (attId: string) => request<{ corrections: Correction[] }>(`/attendance/${attId}/corrections`),
+  correctAttendance: (attId: string, d: { clockIn?: string; clockOut?: string; reason: string }) =>
+    request<{ ok: boolean }>(`/attendance/${attId}/corrections`, { method: 'POST', body: JSON.stringify(d) }),
   today: () => request<{ workDate: string; attendance: { clockInAt: string | null; clockOutAt: string | null; status: string; note: string | null } | null }>('/attendance/today'),
   history: (month: string) => request<{ month: string; rows: HistoryRow[] }>(`/attendance?month=${month}`),
 
   employees: () => request<{ employees: Employee[] }>('/employees'),
-  createEmployee: (d: { email: string; name: string; phone?: string; password: string; role?: string }) =>
+  createEmployee: (d: { email: string; name: string; phone?: string; password: string; role?: string; reportsTo?: string }) =>
     request<{ employee: Employee }>('/employees', { method: 'POST', body: JSON.stringify(d) }),
   deleteEmployee: (email: string) => request<{ ok: boolean }>(`/employees/${encodeURIComponent(email)}`, { method: 'DELETE' }),
 
@@ -57,6 +67,10 @@ export const api = {
     const base = import.meta.env.VITE_API_URL || '/api';
     window.open(`${base}/analytics/export?month=${month}`, '_blank');
   },
+  exportTimesheet: (month: string): void => {
+    const base = import.meta.env.VITE_API_URL || '/api';
+    window.open(`${base}/timesheet/export?month=${month}`, '_blank');
+  },
 
   plans: () => request<{ plans: Plan[] }>('/plans'),
   billing: () => request<{ invoices: Invoice[] }>('/billing'),
@@ -69,16 +83,25 @@ export const api = {
 
 export interface Site { id: string; name: string; lat: number; lng: number; radiusM: number; address: string | null }
 export interface Shift { id: string; name: string; startTime: string; endTime: string; graceMinutes: number }
-export interface Employee { email: string; name: string; role: string; phone: string | null; totalHadir?: number }
-export interface Leave { id: string; email?: string; name?: string; type: string; dateFrom: string; dateTo: string; reason: string | null; status: string }
+export interface Employee { email: string; name: string; role: string; phone: string | null; reportsTo?: string | null; totalHadir?: number }
+export interface Leave { id: string; email?: string; name?: string; type: string; dateFrom: string; dateTo: string; reason: string | null; status: string; reviewNote?: string | null }
 export interface Plan { id: string; name: string; price: number; employeeQuota: number; months: number }
 export interface Invoice { id: string; plan?: string; amount: number; status: string; method?: string | null; employeeQuota?: number; months?: number; paidAt?: string | null }
 export interface HistoryRow { work_date: string; clock_in_at: string | null; clock_out_at: string | null; status: string; note: string | null; name?: string }
+export interface OrgPolicy {
+  timezone: string;
+  breakMinutes: number;
+  overtime: { minMinutes: number; roundToMinutes: number; multiplierWorkday: number; multiplierHoliday: number };
+  twoTierApprovalDays: number;
+}
+export interface Delegation { id: string; fromEmail: string; toEmail: string; dateFrom: string; dateTo: string }
+export interface Correction { id: string; attendanceId: string; field: string; oldValue: string | null; newValue: string | null; reason: string; byEmail: string; at: string }
 export interface Summary {
   date: string;
   headcount: number;
   today: { present: number; late: number; absent: number; leave: number };
   trend: { work_date: string; present: number; late: number; absent: number }[];
   lateLeaders: { name: string; late_count: number }[];
+  bradford?: { email: string; name: string; spells: number; days: number; score: number }[];
 }
 export interface LiveActivity { name: string; date: string; clockInAt: string | null; clockOutAt: string | null; status: string }
