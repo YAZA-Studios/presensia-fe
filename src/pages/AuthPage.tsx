@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShieldCheck, MapPin, Timer, FileSpreadsheet, ArrowRight } from 'lucide-react';
+import { ShieldCheck, MapPin, Timer, FileSpreadsheet, ArrowRight, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 import { api, ApiError } from '../api';
 import { Logo } from '../components/Brand';
 
@@ -10,10 +10,15 @@ export default function AuthPage({ mode, onAuthed }: {
   const [form, setForm] = useState({ orgName: '', name: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const submit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    setBusy(true); setError('');
+    setError('');
+    if (isReg && !acceptedTerms) { setError('Setujui Terms of Service dan Privacy Policy untuk melanjutkan.'); return; }
+    if (form.password.length < 8) { setError('Kata sandi harus memiliki minimal 8 karakter.'); return; }
+    setBusy(true);
     try {
       const me = isReg
         ? await api.register(form)
@@ -51,6 +56,7 @@ export default function AuthPage({ mode, onAuthed }: {
           <Logo size={30} />
           <h1 style={{ marginTop: 18 }}>{isReg ? 'Buat akun perusahaan' : 'Selamat datang kembali'}</h1>
           <p className="muted">{isReg ? 'Gratis 14 hari. Tanpa kartu kredit.' : 'Masuk untuk melanjutkan ke dashboard.'}</p>
+          <div className="auth-trust"><CheckCircle2 size={16} /> Data terenkripsi dan aman</div>
 
           <button type="button" className="btn-google" onClick={google} style={{ marginTop: 18 }}>
             <GoogleG /> {isReg ? 'Daftar dengan Google' : 'Masuk dengan Google'}
@@ -60,12 +66,14 @@ export default function AuthPage({ mode, onAuthed }: {
           <form onSubmit={(e) => { void submit(e); }}>
             {isReg && (
               <>
-                <input placeholder="Nama perusahaan" value={form.orgName} onChange={(e) => setForm({ ...form, orgName: e.target.value })} required />
-                <input placeholder="Nama Anda" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                <label className="auth-field"><span>Nama perusahaan</span><input placeholder="Contoh: Presensia Indonesia" value={form.orgName} onChange={(e) => setForm({ ...form, orgName: e.target.value })} required /></label>
+                <label className="auth-field"><span>Nama Anda</span><input placeholder="Nama lengkap" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></label>
               </>
             )}
-            <input placeholder="Email kerja" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-            <input placeholder="Kata sandi (min 8 karakter)" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={8} />
+            <label className="auth-field"><span>Email kerja</span><input placeholder="nama@perusahaan.com" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required /></label>
+            <label className="auth-field"><span>Kata sandi</span><div className="password-wrap"><input placeholder="Minimal 8 karakter" type={showPassword ? 'text' : 'password'} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required minLength={8} /><button type="button" className="password-toggle" aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></label>
+            {!isReg && <div className="auth-help"><span>Gunakan akun terdaftar Anda</span><a href="#/lupa-password">Lupa password?</a></div>}
+            {isReg && <label className="auth-terms"><input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} required /><span>Saya setuju dengan <a href="#/terms">Terms of Service</a> dan <a href="#/privacy">Privacy Policy</a>.</span></label>}
             <button className="btn btn-primary btn-block btn-lg" disabled={busy}>
               {busy ? 'Memproses…' : <>{isReg ? 'Mulai Sekarang' : 'Masuk'} <ArrowRight size={16} /></>}
             </button>
