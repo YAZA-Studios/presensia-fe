@@ -360,6 +360,9 @@ label.mini { display: flex; flex-direction: column; gap: 5px; font-size: 12px; f
 .lp-copy { border-top: 1px solid rgba(255, 255, 255, 0.09); margin-top: 34px; padding-top: 20px; text-align: center; font-size: 12.5px; max-width: 1200px; margin-left: auto; margin-right: auto; }
 
 /* Reference landing composition: airy, compact, and image-led like the supplied design. */
+.feature-asset-frame { width: min(540px, 100%); overflow: hidden; border-radius: 18px; box-shadow: var(--shadow-md); background: #eef7f5; }
+.feature-asset-frame img { display: block; width: 100%; height: 270px; object-fit: cover; object-position: center; }
+.lp-hero .hero-phone { display: none; }
 .lp { background: #fff; }
 .lp-nav { max-width: 1100px; margin: 0 auto; position: relative; background: rgba(255,255,255,.92); border-bottom: 0; padding-top: 18px; padding-bottom: 18px; }
 .lp-hero { max-width: 1100px; margin: 0 auto; min-height: 410px; padding-top: 42px; padding-bottom: 54px; grid-template-columns: .86fr 1.14fr; }

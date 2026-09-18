@@ -8,32 +8,12 @@ import { Logo, LogoMark } from '../components/Brand';
 
 /* ── Mock visual kecil (murni CSS, tanpa gambar) ─────────────────── */
 function HeroDashboard(): React.ReactNode {
-  const bars = [38, 62, 45, 80, 55, 92, 68, 74, 50, 86];
+  const bars = [38, 62, 45, 80, 55, 92];
   return (
     <div className="hero-dashboard">
-      <div className="hero-dash-top">
-        <Logo size={18} />
-        <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--muted)', fontWeight: 700 }}>Dashboard Setiap Saat</span>
-      </div>
-      <div className="hero-kpis">
-        <div className="hero-kpi hero-kpi-blue"><span>Preview Device</span><b>1,578</b></div>
-        <div className="hero-kpi hero-kpi-red"><span>Telat Hari Ini</span><b>0</b></div>
-        <div className="hero-kpi hero-kpi-green"><span>Total Hadir</span><b>4,734</b></div>
-      </div>
-      <div className="hero-rows">
-        {[
-          { n: 'Mira Sari', s: 'On-time', c: 'pill-green' },
-          { n: 'Rian Hadi', s: 'Late', c: 'pill-amber' },
-          { n: 'Dewi Lestari', s: 'On-time', c: 'pill-green' },
-        ].map((r) => (
-          <div key={r.n} className="hero-row">
-            <span className="hero-avatar">{r.n[0]}</span>
-            <b>{r.n}</b>
-            <span className={`hero-pill ${r.c}`}>{r.s}</span>
-            <span className="hero-bars">{bars.slice(0, 6).map((h, i) => <i key={i} style={{ height: `${h}%` }} />)}</span>
-          </div>
-        ))}
-      </div>
+      <div className="hero-dash-top"><Logo size={18} /><span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--muted)', fontWeight: 700 }}>Dashboard Setiap Saat</span></div>
+      <div className="hero-kpis"><div className="hero-kpi hero-kpi-blue"><span>Preview Device</span><b>1,578</b></div><div className="hero-kpi hero-kpi-red"><span>Telat Hari Ini</span><b>0</b></div><div className="hero-kpi hero-kpi-green"><span>Total Hadir</span><b>4,734</b></div></div>
+      <div className="hero-rows">{['Mira Sari', 'Rian Hadi', 'Dewi Lestari'].map((name, row) => <div key={name} className="hero-row"><span className="hero-avatar">{name[0]}</span><b>{name}</b><span className={`hero-pill ${row === 1 ? 'pill-amber' : 'pill-green'}`}>{row === 1 ? 'Late' : 'On-time'}</span><span className="hero-bars">{bars.map((h, i) => <i key={i} style={{ height: `${h}%` }} />)}</span></div>)}</div>
     </div>
   );
 }
@@ -46,21 +26,6 @@ function FeaturePhoneMap(): React.ReactNode {
           <div className="mock-map-grid" />
           <div className="mock-geofence" />
           <span className="mock-map-label">📍 Kantor Pusat · radius 150 m</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FeaturePhoneMock(): React.ReactNode {
-  return (
-    <div className="mock-phone">
-      <div className="mock-phone-screen">
-        <div className="mock-phone-alert">
-          <div className="mock-alert-icon">⚠️</div>
-          <b>Mock Location Detected</b>
-          <span>Aplikasi fake GPS terdeteksi pada perangkat ini.</span>
-          <button className="btn btn-primary btn-sm" type="button">Kembali</button>
         </div>
       </div>
     </div>
@@ -190,7 +155,7 @@ export default function LandingPage() {
         <h2 className="lp-title">Semua yang HR butuhkan. Tanpa celah.</h2>
 
         <div className="feat" style={{ marginTop: 44 }}>
-          <div className="feat-visual"><div className="feat-blob" /><div className="mock mock-duo"><FeaturePhoneMap /><FeaturePhoneMock /></div></div>
+          <div className="feat-visual"><div className="feat-blob" /><div className="mock feature-asset-frame"><img src="/brand/pages-mockup.jpeg" alt="Presensia attendance and geofencing interface" /></div></div>
           <div className="feat-copy">
             <span className="feat-num">1.</span>
             <h3>Geofencing &amp; Anti-Fake GPS</h3>
