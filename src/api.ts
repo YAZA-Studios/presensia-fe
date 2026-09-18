@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-// Hadirku FE — klien API (cookie session, kredensial ikut otomatis).
+// Presensia FE — klien API (cookie session, kredensial ikut otomatis).
 // ─────────────────────────────────────────────────────────────
 const BASE = import.meta.env.VITE_API_URL || '/api';
 
@@ -51,6 +51,13 @@ export const api = {
   reviewLeave: (id: string, approve: boolean) =>
     request<{ ok: boolean }>(`/leaves/${id}/review`, { method: 'POST', body: JSON.stringify({ approve }) }),
 
+  summary: () => request<Summary>('/analytics/summary'),
+  live: () => request<{ activities: LiveActivity[] }>('/analytics/live'),
+  exportCsv: (month: string): void => {
+    const base = import.meta.env.VITE_API_URL || '/api';
+    window.open(`${base}/analytics/export?month=${month}`, '_blank');
+  },
+
   plans: () => request<{ plans: Plan[] }>('/plans'),
   billing: () => request<{ invoices: Invoice[] }>('/billing'),
   createInvoice: (d: { planId: string; method: 'transfer' | 'doku' }) =>
@@ -67,3 +74,11 @@ export interface Leave { id: string; email?: string; name?: string; type: string
 export interface Plan { id: string; name: string; price: number; employeeQuota: number; months: number }
 export interface Invoice { id: string; plan?: string; amount: number; status: string; method?: string | null; employeeQuota?: number; months?: number; paidAt?: string | null }
 export interface HistoryRow { work_date: string; clock_in_at: string | null; clock_out_at: string | null; status: string; note: string | null; name?: string }
+export interface Summary {
+  date: string;
+  headcount: number;
+  today: { present: number; late: number; absent: number; leave: number };
+  trend: { work_date: string; present: number; late: number; absent: number }[];
+  lateLeaders: { name: string; late_count: number }[];
+}
+export interface LiveActivity { name: string; date: string; clockInAt: string | null; clockOutAt: string | null; status: string }

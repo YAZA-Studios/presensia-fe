@@ -1,7 +1,7 @@
-# Hadirku — Web Absensi Karyawan
+# Presensia — Web Absensi Karyawan
 
-Frontend **Hadirku**, SaaS absensi karyawan berbasis GPS + selfie.
-Judul/tagline produk: **“Hadirku — Absensi Karyawan Online: GPS, Selfie & Rekap Otomatis.”**
+Frontend **Presensia**, SaaS absensi karyawan berbasis GPS + selfie.
+Judul/tagline produk: **“Presensia — Absensi Karyawan Online: GPS, Selfie & Rekap Otomatis.”**
 
 ## Stack Teknologi
 
@@ -11,7 +11,7 @@ Judul/tagline produk: **“Hadirku — Absensi Karyawan Online: GPS, Selfie & Re
 | Bundler | **Vite 5** |
 | Ikon | **lucide-react** |
 | Hosting | **Cloudflare Pages** (header keamanan via `_headers`) |
-| API | hadirku-api (Cloudflare Workers + D1 + R2 + KV + Cron + DOKU) |
+| API | presensia-api (Cloudflare Workers + D1 + R2 + KV + Cron + DOKU) |
 | CI/CD | **GitHub Actions** (typecheck + build di setiap push/PR) |
 
 ## Fitur UI
@@ -32,6 +32,6 @@ npm run deploy    # wrangler pages deploy
 ```
 
 Env:
-- `VITE_API_URL` — basis URL API (produksi: `https://api.hadirku.id`).
+- `VITE_API_URL` — basis URL API (produksi: `https://api.presensia.id`).
 
-Repo API: `hadirku-api` (Cloudflare Workers).
+Repo API: `presensia-api` (Cloudflare Workers).

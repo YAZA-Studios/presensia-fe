@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Clock, Users, CalendarDays, CreditCard, LogOut } from 'lucide-react';
-import { api, type Site, type Employee, type Leave, type HistoryRow, type Plan, type Invoice } from '../api';
+import { Clock, Users, CalendarDays, CreditCard, BarChart3, LogOut } from 'lucide-react';
+import { api, type Site } from '../api';
 import type { Me } from '../App';
 import ClockCard from '../components/ClockCard';
 import EmployeesTab from '../components/EmployeesTab';
 import LeavesTab from '../components/LeavesTab';
 import HistoryTab from '../components/HistoryTab';
 import BillingTab from '../components/BillingTab';
+import AnalyticsTab from '../components/AnalyticsTab';
 
-type Tab = 'clock' | 'history' | 'employees' | 'leaves' | 'billing';
+type Tab = 'clock' | 'analytics' | 'history' | 'employees' | 'leaves' | 'billing';
 
 export default function Dashboard({ me, onLogout, refreshMe }: {
   me: Me; onLogout: () => void; refreshMe: () => Promise<void>;
@@ -23,6 +24,7 @@ export default function Dashboard({ me, onLogout, refreshMe }: {
 
   const tabs: { id: Tab; label: string; icon?: React.ReactNode }[] = [
     { id: 'clock', label: 'Absen', icon: <Clock size={16} /> },
+    ...(isAdmin ? [{ id: 'analytics' as Tab, label: 'Dashboard', icon: <BarChart3 size={16} /> }] : []),
     { id: 'history', label: 'Rekap', icon: <CalendarDays size={16} /> },
     ...(isAdmin ? [
       { id: 'employees' as Tab, label: 'Karyawan', icon: <Users size={16} /> },
@@ -34,7 +36,7 @@ export default function Dashboard({ me, onLogout, refreshMe }: {
   return (
     <div className="dash">
       <header className="nav dash-nav">
-        <div className="brand"><span className="brand-mark">✓</span> Hadirku
+        <div className="brand"><span className="brand-mark">P</span> Presensia
           <span className="org-chip">{me.org.name}</span>
         </div>
         <div className="nav-user">
@@ -60,6 +62,7 @@ export default function Dashboard({ me, onLogout, refreshMe }: {
 
       <main className="dash-main">
         {tab === 'clock' && <ClockCard me={me} sites={sites} onClocked={refreshMe} />}
+        {tab === 'analytics' && <AnalyticsTab />}
         {tab === 'history' && <HistoryTab me={me} />}
         {tab === 'employees' && <EmployeesTab sites={sites} onSitesChanged={() => api.sites().then((r) => setSites(r.sites)).catch(() => {})} />}
         {tab === 'leaves' && <LeavesTab me={me} />}
@@ -68,5 +71,3 @@ export default function Dashboard({ me, onLogout, refreshMe }: {
     </div>
   );
 }
-
-export type { Employee, Leave, HistoryRow, Plan, Invoice };
