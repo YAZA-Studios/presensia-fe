@@ -346,7 +346,7 @@ export default function LandingPage() {
           </div>
           <div><h5>Company</h5><a href="#top">About</a><a href="#pricing">Pricing</a><a href="#how">Demo</a><a href="#footer">Support</a></div>
           <div><h5>Legal</h5><a href="#footer">Terms of Use</a><a href="#footer">Privacy Policy</a><a href="#footer">SLA</a></div>
-          <div><h5>Kontak</h5><a href="#/masuk">Login</a><a href="#/daftar">Daftar</a><a href="#footer">hello@presensia.id</a></div>
+          <div><h5>Kontak</h5><a href="#/masuk">Login</a><a href="#/daftar">Daftar</a><a href="#footer">presensia.app@yazastudios.com</a></div>
         </div>
         <div className="lp-copy">© 2026 Presensia · Precision. Presence. World-Class Attendance. <ChevronRight size={12} style={{ verticalAlign: 'middle' }} /></div>
       </footer>
