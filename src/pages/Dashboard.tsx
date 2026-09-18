@@ -67,6 +67,10 @@ export default function Dashboard({ me, onLogout, refreshMe }: {
       </aside>
 
       <main className="main">
+        <header className="app-topbar">
+          <div><span className="app-eyebrow">Presensia Workspace</span><h1>{nav.find((item) => item.id === tab)?.label ?? 'Dashboard'}</h1></div>
+          <div className="app-topbar-actions"><span className="app-org">{me.org.name}</span><button className="icon-btn" type="button" title="Pengaturan" onClick={() => setTab('settings')}><Settings size={18} /></button><span className="topbar-avatar">{(me.name || me.email)[0].toUpperCase()}</span></div>
+        </header>
         {me.org.plan === 'trial' && me.org.planExpiresAt && (
           <div className="trial-banner">
             ⏳ Masa uji coba sampai {new Date(me.org.planExpiresAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
