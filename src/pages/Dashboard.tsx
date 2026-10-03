@@ -59,6 +59,7 @@ export default function Dashboard({ me, onLogout, refreshMe }: {
 
   return (
     <div className={`dash${collapsed ? ' collapsed' : ''}`}>
+      <a href="#main-content" className="skip-link">Lewati ke konten utama</a>
       <aside className="side">
         <div className="side-brand">
           <Logo size={26} dark />
@@ -82,16 +83,16 @@ export default function Dashboard({ me, onLogout, refreshMe }: {
             <b>{me.name}</b>
             <span>{me.role === 'owner' ? 'Owner' : me.role === 'admin' ? 'HR Admin' : me.role === 'manager' ? 'Manager' : 'Karyawan'}</span>
           </div>
-          <button className="icon-btn side-exit" title="Keluar" onClick={() => { void onLogout(); }} style={{ color: '#8FA3B8' }}>
+          <button className="icon-btn side-exit" title="Keluar" aria-label="Keluar" onClick={() => { void onLogout(); }} style={{ color: '#8FA3B8' }}>
             <LogOut size={16} />
           </button>
         </div>
       </aside>
 
-      <main className="main">
+      <main className="main" id="main-content">
         <header className="app-topbar">
           <div><span className="app-eyebrow">Presensia Workspace</span><h1>{nav.find((item) => item.id === tab)?.label ?? 'Dashboard'}</h1></div>
-          <div className="app-topbar-actions"><span className="app-org">{me.org.name}</span><button className="icon-btn" type="button" title="Pengaturan" onClick={() => setTab('settings')}><Settings size={18} /></button><span className="topbar-avatar">{(me.name || me.email)[0].toUpperCase()}</span></div>
+          <div className="app-topbar-actions"><span className="app-org">{me.org.name}</span><button className="icon-btn" type="button" title="Pengaturan" aria-label="Buka Pengaturan" onClick={() => setTab('settings')}><Settings size={18} /></button><span className="topbar-avatar">{(me.name || me.email)[0].toUpperCase()}</span></div>
         </header>
         {me.org.plan === 'trial' && me.org.planExpiresAt && (
           <div className="trial-banner">

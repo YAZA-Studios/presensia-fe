@@ -239,7 +239,7 @@ export default function EmployeesTab({ sites, onSitesChanged }: {
                     title="NPWP karyawan — otomatis masuk rekap SPT Masa PPh 21 & 1721-A1"
                   />
                 </td>
-                <td>{e.role === 'employee' && <button className="icon-btn" onClick={() => { void removeEmployee(e.email); }}><Trash2 size={14} /></button>}</td>
+                <td>{e.role === 'employee' && <button className="icon-btn" aria-label={`Hapus karyawan ${e.name}`} title="Hapus karyawan" onClick={() => { void removeEmployee(e.email); }}><Trash2 size={14} /></button>}</td>
               </tr>
             ))}
             {employees.length === 0 && <tr><td colSpan={8} className="muted">Belum ada karyawan — klik “Tambah Karyawan”.</td></tr>}
@@ -259,7 +259,7 @@ export default function EmployeesTab({ sites, onSitesChanged }: {
           {sites.map((s) => (              <li key={s.id}>
                 <div><strong>{s.name}</strong> <span className="muted radius-label">radius {s.radiusM} m</span>
                 {s.address && <div className="muted small">{s.address}</div>}</div>
-              <button className="icon-btn" onClick={() => { void api.deleteSite(s.id).then(onSitesChanged); }}><Trash2 size={14} /></button>
+              <button className="icon-btn" aria-label={`Hapus lokasi ${s.name}`} title="Hapus lokasi" onClick={() => { void api.deleteSite(s.id).then(onSitesChanged); }}><Trash2 size={14} /></button>
             </li>
           ))}
           {sites.length === 0 && <li className="muted">Belum ada lokasi.</li>}
