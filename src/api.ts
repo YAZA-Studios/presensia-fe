@@ -184,6 +184,14 @@ export const api = {
     const b = import.meta.env.VITE_API_URL || '/api';
     window.open(`${b}/payroll/recap/annual/pdf?year=${year}`, '_blank');
   },
+  // PDF bukti potong PER karyawan (QR + segel digital, siap dikirim).
+  exportAnnualPdfFor: (year: number, email: string): void => {
+    const b = import.meta.env.VITE_API_URL || '/api';
+    window.open(`${b}/payroll/recap/annual/pdf?year=${year}&email=${encodeURIComponent(email)}`, '_blank');
+  },
+  // Daftar karyawan berslip setahun (untuk unduhan PDF per orang).
+  annualEmployees: (year: number) =>
+    request<{ year: number; employees: { email: string; name: string; months: number; bruto: number; total: number }[] }>(`/payroll/recap/annual/employees?year=${year}`),
   // Preview validasi snapshot iuran BPJS slip vs config aktif (JSON).
   bpjsCheck: (month: string) =>
     request<{ month: string; checked: number; bedaCount: number; tanpaSnapshot: number; rows: BpjsDiffRow[] }>(`/payroll/recap/bpjs-check?month=${month}`),
@@ -219,7 +227,7 @@ export const api = {
   plans: () => request<{ plans: Plan[] }>('/plans'),
   billing: () => request<{ invoices: Invoice[] }>('/billing'),
   createInvoice: (d: { planId: string; method?: 'doku' }) =>
-    request<{ invoice: Invoice; paymentUrl?: string; dokuError?: string }>('/billing/invoices', { method: 'POST', body: JSON.stringify(d) }),
+    request<{ invoice: Invoice; paymentUrl?: string; dokuError?: string; payment?: { virtualAccountNo: string | null; bankLabel: string; expiredAt: string; howToPayPage?: string } }>('/billing/invoices', { method: 'POST', body: JSON.stringify(d) }),
   invoiceStatus: (id: string) => request<{ invoice: Invoice }>(`/billing/invoices/${id}`),
   // Read-only: status gateway DOKU (rahasia operator, diatur via CLI di server).
   dokuStatus: () => request<{ configured: boolean; env: 'sandbox' | 'production'; clientIdMasked: string | null }>('/admin/doku'),
@@ -231,7 +239,7 @@ export interface Employee { email: string; name: string; role: string; phone: st
 export const PTKP_OPTIONS = ['TK/0', 'TK/1', 'TK/2', 'TK/3', 'K/0', 'K/1', 'K/2', 'K/3'] as const;
 export interface Leave { id: string; email?: string; name?: string; type: string; dateFrom: string; dateTo: string; reason: string | null; status: string; reviewNote?: string | null }
 export interface Plan { id: string; name: string; price: number; employeeQuota: number; months: number }
-export interface Invoice { id: string; plan?: string; amount: number; status: string; method?: string | null; employeeQuota?: number; months?: number; paidAt?: string | null }
+export interface Invoice { id: string; plan?: string; amount: number; status: string; method?: string | null; employeeQuota?: number; months?: number; paidAt?: string | null; vaNumber?: string | null; bankLabel?: string | null; howToPayUrl?: string | null }
 export interface HistoryRow { work_date: string; clock_in_at: string | null; clock_out_at: string | null; status: string; note: string | null; name?: string }
 export interface OrgPolicy {
   timezone: string;
