@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2, ExternalLink, XCircle } from 'lucide-react';
+import { CheckCircle2, Copy, ExternalLink, Landmark, XCircle } from 'lucide-react';
 import { api, ApiError } from '../api';
 import type { Me } from '../App';
 
 const rupiah = (n: number): string => `Rp ${n.toLocaleString('id-ID')}`;
+
+interface PaymentVaInfo { virtualAccountNo: string | null; bankLabel: string; expiredAt: string; howToPayPage?: string }
 
 export default function BillingTab({ me }: { me: Me }) {
   const isOwner = me.role === 'owner';
@@ -12,6 +14,8 @@ export default function BillingTab({ me }: { me: Me }) {
   const [error, setError] = useState('');
   const [busyId, setBusyId] = useState<string | null>(null);
   const [waitingId, setWaitingId] = useState<string | null>(null);
+  const [vaInfo, setVaInfo] = useState<PaymentVaInfo | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const { data: planData } = useQuery({ queryKey: ['plans'], queryFn: () => api.plans() });
   const { data: invData } = useQuery({ queryKey: ['billing'], queryFn: () => api.billing() });
@@ -39,17 +43,26 @@ export default function BillingTab({ me }: { me: Me }) {
   const invoices = invData?.invoices ?? [];
 
   const pay = async (planId: string): Promise<void> => {
-    setBusyId(planId); setError('');
+    setBusyId(planId); setError(''); setVaInfo(null); setCopied(false);
     try {
       const res = await api.createInvoice({ planId, method: 'doku' });
       void qc.invalidateQueries({ queryKey: ['billing'] });
-      if (res.paymentUrl) {
+      if (res.payment) {
+        setVaInfo(res.payment);
+        if (res.payment.howToPayPage) window.open(res.payment.howToPayPage, '_blank');
+        setWaitingId(res.invoice.id);
+      } else if (res.paymentUrl) {
         window.open(res.paymentUrl, '_blank');
         setWaitingId(res.invoice.id);
       } else if (res.dokuError) setError(res.dokuError);
-      else setError('Gagal membuat tautan pembayaran.');
+      else setError('Gagal membuat pembayaran.');
     } catch (err) { setError(err instanceof ApiError ? err.message : 'Gagal membuat invoice.'); }
     finally { setBusyId(null); }
+  };
+
+  const copyVa = async (): Promise<void> => {
+    if (!vaInfo?.virtualAccountNo) return;
+    try { await navigator.clipboard.writeText(vaInfo.virtualAccountNo); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* diabaikan */ }
   };
 
   return (
@@ -71,7 +84,26 @@ export default function BillingTab({ me }: { me: Me }) {
               </div>
             ))}
           </div>
-          {waitingId && <div className="ok-box"><ExternalLink size={14} /> Menunggu pembayaran DOKU — halaman ini otomatis ter-update setelah lunas.</div>}
+          {vaInfo && (
+            <div className="card" style={{ marginTop: 14, border: '1.5px solid var(--teal)' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: 7 }}><Landmark size={16} /> Virtual Account — {vaInfo.bankLabel}</h3>
+              {vaInfo.virtualAccountNo ? (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '10px 0', flexWrap: 'wrap' }}>
+                    <b style={{ fontSize: 22, letterSpacing: 1, fontVariantNumeric: 'tabular-nums' }}>{vaInfo.virtualAccountNo}</b>
+                    <button className="btn btn-sm btn-ghost" onClick={() => { void copyVa(); }}><Copy size={13} /> {copied ? 'Tersalin!' : 'Salin'}</button>
+                  </div>
+                  <p className="muted small">Berlaku sampai {new Date(vaInfo.expiredAt).toLocaleString('id-ID')} · transfer sesuai nominal tepat.</p>
+                  {vaInfo.howToPayPage && (
+                    <button className="btn btn-secondary btn-sm" onClick={() => window.open(vaInfo.howToPayPage!, '_blank')}>
+                      <ExternalLink size={13} /> Buka Cara Pembayaran
+                    </button>
+                  )}
+                </>
+              ) : <p className="muted small">Virtual Account sedang dibuat — muat ulang beberapa saat lagi.</p>}
+            </div>
+          )}
+          {waitingId && <div className="ok-box"><ExternalLink size={14} /> Menunggu pembayaran — halaman ini otomatis ter-update setelah lunas.</div>}
           {error && <div className="error-box">{error}</div>}
         </div>
 
@@ -79,29 +111,31 @@ export default function BillingTab({ me }: { me: Me }) {
         {isOwner && doku && (
           <div className={`status-chip ${doku.configured ? 'ok' : 'warn'}`}>
             {doku.configured
-              ? <><CheckCircle2 size={15} /> Gateway DOKU aktif · {doku.env === 'production' ? 'Production' : 'Sandbox'} · {doku.clientIdMasked}</>
-              : <><XCircle size={15} /> Gateway DOKU belum dikonfigurasi — diatur operator via server.</>}
+              ? <><CheckCircle2 size={15} /> Gateway pembayaran aktif (Yaza Payments · DOKU VA) · {doku.clientIdMasked ?? 'siap'}</>
+              : <><XCircle size={15} /> Gateway pembayaran belum aktif — pasang YAZA_PAYMENTS_API_KEY via server (operator).</>}
           </div>
         )}
       </div>
 
       <div className="card">
         <h2>Riwayat Invoice</h2>
-        <table className="table">
-          <thead><tr><th>ID</th><th>Paket</th><th>Nominal</th><th>Status</th><th>Metode</th></tr></thead>
-          <tbody>
-            {invoices.map((i) => (
-              <tr key={i.id}>
-                <td className="mono small">{i.id}</td>
-                <td className="capitalize">{i.plan ?? '—'}</td>
-                <td>{rupiah(i.amount)}</td>
-                <td><span className={`badge inv-${i.status}`}>{i.status === 'paid' ? 'Lunas' : i.status === 'unpaid' ? 'Belum Bayar' : i.status}</span></td>
-                <td className="muted">{i.method === 'doku' ? 'DOKU' : i.method || '—'}</td>
-              </tr>
-            ))}
-            {invoices.length === 0 && <tr><td colSpan={5} className="muted">Belum ada invoice.</td></tr>}
-          </tbody>
-        </table>
+        <div className="table-wrap" style={{ marginTop: 10 }}>
+          <table className="table">
+            <thead><tr><th>ID</th><th>Paket</th><th className="num">Nominal</th><th>Virtual Account</th><th>Status</th></tr></thead>
+            <tbody>
+              {invoices.map((i) => (
+                <tr key={i.id}>
+                  <td className="mono small">{i.id}</td>
+                  <td className="capitalize">{i.plan ?? '—'}</td>
+                  <td className="num">{rupiah(i.amount)}</td>
+                  <td className="mono small">{i.vaNumber ? `${i.bankLabel ?? ''} · ${i.vaNumber}` : '—'}</td>
+                  <td><span className={`badge inv-${i.status}`}>{i.status === 'paid' ? 'Lunas' : i.status === 'unpaid' ? 'Belum Bayar' : i.status}</span></td>
+                </tr>
+              ))}
+              {invoices.length === 0 && <tr><td colSpan={5} className="table-empty">Belum ada invoice.</td></tr>}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
