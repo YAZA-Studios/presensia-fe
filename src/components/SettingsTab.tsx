@@ -20,8 +20,11 @@ export default function SettingsTab({ me }: { me: { role: string; email: string 
   // Draf kebijakan (bekerja pada salinan agar tidak mengubah cache sebelum disimpan).
   const [draft, setDraft] = useState<OrgPolicy | null>(null);
 
-  // Form hari libur.
+  // Form hari libur — default TERTUTUP: tabel libur tampil dulu (table-first).
   const [holiday, setHoliday] = useState({ date: '', name: '' });
+  const [showHolidayForm, setShowHolidayForm] = useState(false);
+  // Form konfigurasi BPJS — default TERTUTUP: ringkasan nilai aktif dulu.
+  const [showBpjsForm, setShowBpjsForm] = useState(false);
   const year = String(new Date().getFullYear());
   // Form konfigurasi BPJS (tanpa deploy).
   const [bpjsDraft, setBpjsDraft] = useState<BpjsConfig | null>(null);
@@ -47,10 +50,10 @@ export default function SettingsTab({ me }: { me: { role: string; email: string 
   useEffect(() => {
     if (showPolicyForm && policy && !draft) setDraft(policy);
   }, [showPolicyForm, policy, draft]);
-  // Draft BPJS → sekali dari cache, lalu dikelola lokal sampai disimpan.
+  // Draft BPJS → sekali dari cache saat form DIBUKA, lalu dikelola lokal.
   useEffect(() => {
-    if (bpjsData?.config && !bpjsDraft) setBpjsDraft(bpjsData.config);
-  }, [bpjsData, bpjsDraft]);
+    if (showBpjsForm && bpjsData?.config && !bpjsDraft) setBpjsDraft(bpjsData.config);
+  }, [showBpjsForm, bpjsData, bpjsDraft]);
 
   const savePolicy = async (): Promise<void> => {
     if (!draft) return;
@@ -100,6 +103,12 @@ export default function SettingsTab({ me }: { me: { role: string; email: string 
         : 'Tidak ada perubahan.' });
     } catch (err) { setBpjsMsg({ ok: false, text: err instanceof ApiError ? err.message : 'Gagal menyimpan.' }); }
     finally { setBpjsBusy(false); }
+  };
+
+  /** Label kelas JKK dari tarif aktif (untuk ringkasan). */
+  const jkkLabelOf = (rate: number): string => {
+    const hit = bpjsData?.jkkClasses.find((c) => Math.abs(c.rate - rate) < 1e-9);
+    return hit ? hit.label.split(' — ')[0]! : 'Kustom';
   };
 
   if (!policy) return <div className="card"><p className="muted">Memuat pengaturan…</p></div>;
@@ -179,29 +188,42 @@ export default function SettingsTab({ me }: { me: { role: string; email: string 
 
         {isOwner && (
           <>
-            <h3 style={{ marginTop: 20 }}><CalendarDays size={16} /> Hari Libur {year}</h3>
+            <div className="form-toggle-row" style={{ marginTop: 20 }}>
+              <h3><CalendarDays size={16} /> Hari Libur {year}</h3>
+              <button className={`btn btn-sm ${showHolidayForm ? 'btn-ghost' : 'btn-primary'}`} onClick={() => { setHoliday({ date: '', name: '' }); setShowHolidayForm((v) => !v); }}>
+                {showHolidayForm ? <><X size={14} /> Tutup</> : <><Plus size={14} /> Tambah Hari Libur</>}
+              </button>
+            </div>
             <p className="muted small">Libur nasional/cuti bersama — hari libur tidak dihitung lembur hari-kerja & dikecualikan dari hari kerja payroll.</p>
-            <div className="coord-row">
-              <label className="mini">Tanggal
-                <input type="date" value={holiday.date} onChange={(e) => setHoliday({ ...holiday, date: e.target.value })} />
-              </label>
-              <label className="mini">Nama (mis. Idul Fitri)
-                <input type="text" value={holiday.name} onChange={(e) => setHoliday({ ...holiday, name: e.target.value })} placeholder="Nama hari libur" />
-              </label>
+            {showHolidayForm && (
+              <div className="grid-form form-panel">
+                <div className="coord-row">
+                  <label className="mini">Tanggal
+                    <input type="date" value={holiday.date} onChange={(e) => setHoliday({ ...holiday, date: e.target.value })} />
+                  </label>
+                  <label className="mini">Nama (mis. Idul Fitri)
+                    <input type="text" value={holiday.name} onChange={(e) => setHoliday({ ...holiday, name: e.target.value })} placeholder="Nama hari libur" />
+                  </label>
+                </div>
+                <div className="review-btns">
+                  <button className="btn btn-primary btn-sm" disabled={busy || !holiday.date} onClick={() => { void saveHoliday(false); }}><Plus size={13} /> Simpan</button>
+                  {holiday.date && (
+                    <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => { void saveHoliday(true); }}><Trash2 size={13} /> Hapus Tanggal Ini</button>
+                  )}
+                </div>
+              </div>
+            )}
+            <div className="table-wrap" style={{ marginTop: 10 }}>
+              <table className="table">
+                <thead><tr><th>Tanggal</th><th>Nama</th></tr></thead>
+                <tbody>
+                  {(holData?.holidays ?? []).map((h) => (
+                    <tr key={h.date}><td>{h.date}</td><td>{h.name}</td></tr>
+                  ))}
+                  {(holData?.holidays ?? []).length === 0 && <tr><td colSpan={2} className="table-empty">Belum ada hari libur untuk {year}.</td></tr>}
+                </tbody>
+              </table>
             </div>
-            <div className="review-btns" style={{ marginTop: 8 }}>
-              <button className="btn btn-primary btn-sm" disabled={busy || !holiday.date} onClick={() => { void saveHoliday(false); }}><Plus size={13} /> Simpan</button>
-              <button className="btn btn-ghost btn-sm" disabled={busy || !holiday.date} onClick={() => { void saveHoliday(true); }}><Trash2 size={13} /> Hapus</button>
-            </div>
-            <table className="table" style={{ marginTop: 10 }}>
-              <thead><tr><th>Tanggal</th><th>Nama</th></tr></thead>
-              <tbody>
-                {(holData?.holidays ?? []).map((h) => (
-                  <tr key={h.date}><td>{h.date}</td><td>{h.name}</td></tr>
-                ))}
-                {(holData?.holidays ?? []).length === 0 && <tr><td colSpan={2} className="muted">Belum ada hari libur untuk {year}.</td></tr>}
-              </tbody>
-            </table>
           </>
         )}
 
@@ -214,13 +236,34 @@ export default function SettingsTab({ me }: { me: { role: string; email: string 
 
         {isOwner && (
           <>
-            <h3 style={{ marginTop: 20 }}>Konfigurasi BPJS (per organisasi)</h3>
+            <div className="form-toggle-row" style={{ marginTop: 20 }}>
+              <h3>Konfigurasi BPJS (per organisasi)</h3>
+              <button className={`btn btn-sm ${showBpjsForm ? 'btn-ghost' : 'btn-primary'}`} onClick={() => { setBpjsDraft(null); setBpjsMsg(null); setShowBpjsForm((v) => !v); }}>
+                {showBpjsForm ? <><X size={14} /> Tutup</> : <><Save size={14} /> Ubah Konfigurasi</>}
+              </button>
+            </div>
             <p className="muted small">
-              Tarif, kelas risiko JKK, dan plafon di bawah ini dipakai payroll berikutnya —
-              tersimpan di server, tanpa deploy. Slip yang sudah final tidak berubah.
-              Verifikasi ke regulasi terbaru sebelum dipakai produksi.
+              Tarif, kelas risiko JKK, dan plafon dipakai payroll berikutnya — tersimpan di server,
+              tanpa deploy. Slip yang sudah final tidak berubah.
             </p>
-            {!bpjsDraft ? <p className="muted">Memuat konfigurasi…</p> : (
+            {!showBpjsForm && (
+              bpjsData?.config ? (
+                <div className="table-wrap" style={{ marginTop: 10 }}>
+                  <table className="table">
+                    <thead><tr><th>Komponen</th><th className="num">Perusahaan</th><th className="num">Karyawan</th></tr></thead>
+                    <tbody>
+                      <tr><td>JHT</td><td className="num">{pct(bpjsData.config.jhtCompany)}%</td><td className="num">{pct(bpjsData.config.jhtEmployee)}%</td></tr>
+                      <tr><td>JP (plafon {new Intl.NumberFormat('id-ID').format(bpjsData.config.jpWageCap)})</td><td className="num">{pct(bpjsData.config.jpCompany)}%</td><td className="num">{pct(bpjsData.config.jpEmployee)}%</td></tr>
+                      <tr><td>JKP</td><td className="num">{pct(bpjsData.config.jkpCompany)}%</td><td className="num">{pct(bpjsData.config.jkpEmployee)}%</td></tr>
+                      <tr><td>JKM</td><td className="num">{pct(bpjsData.config.jkmCompany)}%</td><td className="num muted">—</td></tr>
+                      <tr><td>JKK ({jkkLabelOf(bpjsData.config.jkkCompany)})</td><td className="num">{pct(bpjsData.config.jkkCompany)}%</td><td className="num muted">—</td></tr>
+                      <tr><td>Kesehatan (plafon {new Intl.NumberFormat('id-ID').format(bpjsData.config.kesehatanWageCap)})</td><td className="num">{pct(bpjsData.config.kesehatanCompany)}%</td><td className="num">{pct(bpjsData.config.kesehatanEmployee)}%</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              ) : <p className="muted small" style={{ marginTop: 10 }}>Memuat konfigurasi…</p>
+            )}
+            {showBpjsForm && (!bpjsDraft ? <p className="muted">Memuat konfigurasi…</p> : (
               <div className="grid-form form-panel">
                 <label className="mini">Kelas risiko JKK (perusahaan)
                   <select
@@ -295,7 +338,7 @@ export default function SettingsTab({ me }: { me: { role: string; email: string 
                 </div>
                 {bpjsMsg && <div className={bpjsMsg.ok ? 'ok-box' : 'error-box'}>{bpjsMsg.text}</div>}
               </div>
-            )}
+            ))}
           </>
         )}
         {msg && <div className={msg.ok ? 'ok-box' : 'error-box'}>{msg.text}</div>}
@@ -331,19 +374,21 @@ export default function SettingsTab({ me }: { me: { role: string; email: string 
         ) : <p className="muted">Butuh minimal 2 pengguna manager/admin untuk delegasi. Tambahkan dari menu Karyawan.</p>}
 
         <h3 style={{ marginTop: 18 }}>Delegasi Aktif</h3>
-        <table className="table">
-          <thead><tr><th>Dari</th><th>Kepada</th><th>Periode</th></tr></thead>
-          <tbody>
-            {delegations.map((d) => (
-              <tr key={d.id}>
-                <td>{employees.find((x) => x.email === d.fromEmail)?.name ?? d.fromEmail}</td>
-                <td>{employees.find((x) => x.email === d.toEmail)?.name ?? d.toEmail}</td>
-                <td className="muted">{d.dateFrom} → {d.dateTo}</td>
-              </tr>
-            ))}
-            {delegations.length === 0 && <tr><td colSpan={3} className="muted">Belum ada delegasi.</td></tr>}
-          </tbody>
-        </table>
+        <div className="table-wrap">
+          <table className="table">
+            <thead><tr><th>Dari</th><th>Kepada</th><th>Periode</th></tr></thead>
+            <tbody>
+              {delegations.map((d) => (
+                <tr key={d.id}>
+                  <td>{employees.find((x) => x.email === d.fromEmail)?.name ?? d.fromEmail}</td>
+                  <td>{employees.find((x) => x.email === d.toEmail)?.name ?? d.toEmail}</td>
+                  <td className="muted">{d.dateFrom} → {d.dateTo}</td>
+                </tr>
+              ))}
+              {delegations.length === 0 && <tr><td colSpan={3} className="table-empty">Belum ada delegasi.</td></tr>}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

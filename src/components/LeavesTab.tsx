@@ -70,16 +70,18 @@ export default function LeavesTab({ me }: { me: Me }) {
       <div className="card">
         <h2>Saldo Cuti {balData ? balData.year : ''}</h2>
         {isAdmin ? (
-          <table className="table" style={{ marginTop: 8 }}>
-            <thead><tr><th>Nama</th><th>Kuota</th><th>Terpakai</th><th>Sisa</th></tr></thead>
+          <div className="table-wrap" style={{ marginTop: 8 }}>
+          <table className="table">
+            <thead><tr><th>Nama</th><th className="num">Kuota</th><th className="num">Terpakai</th><th className="num">Sisa</th></tr></thead>
             <tbody>
               {balances.map((b) => (
-                <tr key={b.email}><td>{b.name}</td><td>{b.quota} hari</td><td>{b.used} hari</td>
-                  <td><b style={{ color: b.remaining <= 2 ? 'crimson' : undefined }}>{b.remaining} hari</b></td></tr>
+                <tr key={b.email}><td>{b.name}</td><td className="num">{b.quota} hari</td><td className="num">{b.used} hari</td>
+                  <td className="num"><b style={{ color: b.remaining <= 2 ? 'crimson' : undefined }}>{b.remaining} hari</b></td></tr>
               ))}
-              {balances.length === 0 && <tr><td colSpan={4} className="muted">Belum ada data.</td></tr>}
+              {balances.length === 0 && <tr><td colSpan={4} className="table-empty">Belum ada data.</td></tr>}
             </tbody>
           </table>
+          </div>
         ) : (
           <div className="summary-kpis" style={{ marginTop: 10 }}>
             <div><b>{myBalance?.quota ?? '—'}</b><span>Kuota (hari)</span></div>
@@ -92,6 +94,7 @@ export default function LeavesTab({ me }: { me: Me }) {
 
       <div className="card">
         <h2>{isAdmin ? 'Pengajuan Tim' : 'Pengajuan Saya'}</h2>
+        <div className="table-wrap">
         <table className="table">
           <thead><tr>{isAdmin && <th>Nama</th>}<th>Jenis</th><th>Tanggal</th><th>Status</th>{isAdmin && <th>{' '}</th>}</tr></thead>
           <tbody>
@@ -111,9 +114,10 @@ export default function LeavesTab({ me }: { me: Me }) {
                 )}
               </tr>
             ))}
-            {leaves.length === 0 && <tr><td colSpan={5} className="muted">Belum ada pengajuan.</td></tr>}
+            {leaves.length === 0 && <tr><td colSpan={5} className="table-empty">Belum ada pengajuan.</td></tr>}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

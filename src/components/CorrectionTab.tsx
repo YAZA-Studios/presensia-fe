@@ -73,7 +73,8 @@ export default function CorrectionTab({ me }: { me: Me }) {
           </form>
         )}
         {msg && <p className="muted small" style={{ color: 'crimson' }}>{msg}</p>}
-        <table className="table" style={{ marginTop: 10 }}>
+        <div className="table-wrap" style={{ marginTop: 10 }}>
+        <table className="table">
           <thead><tr><th>Tanggal</th>{canReview && <th>Nama</th>}<th>Jam Diajukan</th><th>Alasan</th><th>Status</th>{canReview && <th></th>}</tr></thead>
           <tbody>
             {rows.map((r: AttendanceRequest) => (
@@ -98,9 +99,10 @@ export default function CorrectionTab({ me }: { me: Me }) {
                 )}
               </tr>
             ))}
-            {rows.length === 0 && <tr><td colSpan={canReview ? 6 : 4} className="muted">Belum ada pengajuan koreksi.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={canReview ? 6 : 4} className="table-empty">Belum ada pengajuan koreksi.</td></tr>}
           </tbody>
         </table>
+        </div>
       </div>
 
       <div className="card">

@@ -189,7 +189,7 @@ export default function EmployeesTab({ sites, onSitesChanged }: {
         )}
         <div className="table-scroll">
         <table className="table">
-          <thead><tr><th>Nama</th><th>Email</th><th>Hadir</th><th>Gaji / PTKP</th><th>Kontrak s/d</th><th>Masuk Kerja</th><th>NPWP</th><th /></tr></thead>
+          <thead><tr><th>Nama</th><th>Email</th><th className="center">Hadir</th><th>Gaji / PTKP</th><th>Kontrak s/d</th><th>Masuk Kerja</th><th>NPWP</th><th /></tr></thead>
           <tbody>
             {employees.map((e) => (
               <tr key={e.email}>

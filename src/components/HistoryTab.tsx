@@ -39,20 +39,22 @@ export default function HistoryTab({ me }: { me: Me }) {
       {isLoading ? <p className="muted">Memuat…</p> : rows.length === 0 ? (
         <p className="muted">Belum ada data absensi bulan ini.</p>
       ) : (
+        <div className="table-wrap">
         <table className="table">
-          <thead><tr><th>Tanggal</th>{isAdmin && <th>Nama</th>}<th>Masuk</th><th>Keluar</th><th>Status</th></tr></thead>
+          <thead><tr><th>Tanggal</th>{isAdmin && <th>Nama</th>}<th className="num">Masuk</th><th className="num">Keluar</th><th>Status</th></tr></thead>
           <tbody>
             {rows.map((r) => (
               <tr key={`${r.work_date}-${r.name ?? ''}`}>
                 <td>{new Date(`${r.work_date}T00:00:00`).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</td>
                 {isAdmin && <td>{r.name ?? '—'}</td>}
-                <td>{r.clock_in_at ? new Date(r.clock_in_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
-                <td>{r.clock_out_at ? new Date(r.clock_out_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                <td className="num">{r.clock_in_at ? new Date(r.clock_in_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                <td className="num">{r.clock_out_at ? new Date(r.clock_out_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
                 <td><span className={`badge status-${r.status}`}>{STATUS_LABEL[r.status] ?? r.status}</span></td>
               </tr>
             ))}
           </tbody>
         </table>
+        </div>
       )}
     </div>
   );

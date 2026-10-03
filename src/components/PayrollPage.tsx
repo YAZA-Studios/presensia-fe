@@ -64,20 +64,21 @@ function ThrCard() {
       {msg && <p className="muted small" style={{ marginTop: 8 }}>{msg}</p>}
       {awards.length > 0 && (
         <>
-          <table className="table" style={{ marginTop: 10 }}>
-            <thead><tr><th>Nama</th><th>Masuk Kerja</th><th>Masa Kerja</th><th>Prorata</th><th>THR</th></tr></thead>
+          <div className="table-wrap" style={{ marginTop: 10 }}>
+          <table className="table">
+            <thead><tr><th>Nama</th><th>Masuk Kerja</th><th className="num">Masa Kerja</th><th className="num">Prorata</th><th className="num">THR</th></tr></thead>
             <tbody>
               {awards.map((a) => (
                 <tr key={a.email} style={!a.eligible ? { opacity: 0.55 } : undefined} title={a.reason ?? undefined}>
                   <td>{a.name ?? a.email}</td>
                   <td className="muted small">{a.hireDate ?? '— belum diisi'}</td>
-                  <td>{a.eligible ? (a.monthsWorked >= 12 ? `${a.monthsWorked} bln (penuh)` : `${a.monthsWorked} bln`) : '—'}</td>
-                  <td>{a.eligible ? `${Math.round(a.prorataFactor * 100)}%` : '—'}</td>
-                  <td><b>{a.eligible ? rp(a.amount) : '—'}</b></td>
+                  <td className="num">{a.eligible ? (a.monthsWorked >= 12 ? `${a.monthsWorked} bln (penuh)` : `${a.monthsWorked} bln`) : '—'}</td>
+                  <td className="num">{a.eligible ? `${Math.round(a.prorataFactor * 100)}%` : '—'}</td>
+                  <td className="num"><b>{a.eligible ? rp(a.amount) : '—'}</b></td>
                 </tr>
-              ))}
-            </tbody>
+              ))}              </tbody>
           </table>
+          </div>
           <p className="muted small" style={{ marginTop: 8 }}>
             Total THR berhak: <b>{rp(total)}</b> · {awards.length - ineligible.length} berhak
             {ineligible.length > 0 ? ` · ${ineligible.length} tidak berhak (arahkan kursor untuk alasan)` : ''}.
@@ -295,7 +296,8 @@ export default function PayrollPage() {
                     </b>{' '}
                     dibanding config BPJS yang berlaku sekarang:
                   </p>
-                  <table className="table" style={{ marginTop: 8 }}>
+                  <div className="table-wrap" style={{ marginTop: 8 }}>
+                  <table className="table">
                     <thead><tr><th>Karyawan</th><th>Status</th><th>Selisih</th></tr></thead>
                     <tbody>
                       {bpjsDiff.rows.map((r) => (
@@ -312,6 +314,7 @@ export default function PayrollPage() {
                       ))}
                     </tbody>
                   </table>
+                  </div>
                   <p className="muted small" style={{ marginTop: 8 }}>
                     Snapshot slip tidak berubah setelah final. Atur tarif di Pengaturan → Konfigurasi BPJS,
                     lalu hitung ulang payroll bulan berjalan bila perlu.
@@ -330,23 +333,25 @@ export default function PayrollPage() {
               </p>
             ) : (
               <>
-              <table className="table" style={{ marginTop: 10 }}>
-                <thead><tr><th>Nama</th><th>PTKP</th><th>Gaji Pokok</th><th>Lembur</th><th>Potongan Absen</th><th>PPh 21</th><th>BPJS Kry.</th><th>Net</th></tr></thead>
+              <div className="table-wrap" style={{ marginTop: 10 }}>
+              <table className="table">
+                <thead><tr><th>Nama</th><th>PTKP</th><th className="num">Gaji Pokok</th><th className="num">Lembur</th><th className="num">Potongan Absen</th><th className="num">PPh 21</th><th className="num">BPJS Kry.</th><th className="num">Net</th></tr></thead>
                 <tbody>
                   {slips.map((s) => (
                     <tr key={s.id}>
                       <td>{s.name ?? s.email}</td>
                       <td className="muted small">{s.ptkp ?? 'TK/0'}</td>
-                      <td>{rp(s.base_salary)}</td>
-                      <td>{s.overtime_minutes > 0 ? `${s.overtime_minutes} mnt · ${rp(s.overtime_pay)}` : '—'}</td>
-                      <td>{s.absence_deduction > 0 ? `−${rp(s.absence_deduction)}` : '—'}</td>
-                      <td>{(s.pph21 ?? 0) > 0 ? `${rp(s.pph21!)} (${((s.pph21_rate ?? 0) * 100).toFixed(2)}%)` : '—'}</td>
-                      <td>{(s.bpjs_employee ?? 0) > 0 ? rp(s.bpjs_employee!) : '—'}</td>
-                      <td><b>{rp(s.net_pay)}</b></td>
+                      <td className="num">{rp(s.base_salary)}</td>
+                      <td className="num">{s.overtime_minutes > 0 ? `${s.overtime_minutes} mnt · ${rp(s.overtime_pay)}` : '—'}</td>
+                      <td className="num">{s.absence_deduction > 0 ? `−${rp(s.absence_deduction)}` : '—'}</td>
+                      <td className="num">{(s.pph21 ?? 0) > 0 ? `${rp(s.pph21!)} (${((s.pph21_rate ?? 0) * 100).toFixed(2)}%)` : '—'}</td>
+                      <td className="num">{(s.bpjs_employee ?? 0) > 0 ? rp(s.bpjs_employee!) : '—'}</td>
+                      <td className="num"><b>{rp(s.net_pay)}</b></td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              </div>
               <p className="muted small" style={{ marginTop: 8 }}>
                 PPh 21 = TER (PP 58/2023) × bruto (gaji − potongan hadir + lembur − JHT/JP karyawan).
                 BPJS karyawan = JHT 2% + JP 1% + JKP 0,06% + Kesehatan 1% (JP & Kesehatan mengikuti plafon upah).

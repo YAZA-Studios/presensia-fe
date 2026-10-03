@@ -63,14 +63,15 @@ export default function OvertimeTab({ me }: { me: Me }) {
           </form>
         )}
         {msg && <p className="muted small" style={{ color: 'crimson' }}>{msg}</p>}
-        <table className="table" style={{ marginTop: 10 }}>
-          <thead><tr><th>Tanggal</th>{canReview && <th>Nama</th>}<th>Durasi</th><th>Alasan</th><th>Status</th>{canReview && <th></th>}</tr></thead>
+        <div className="table-wrap" style={{ marginTop: 10 }}>
+        <table className="table">
+          <thead><tr><th>Tanggal</th>{canReview && <th>Nama</th>}<th className="num">Durasi</th><th>Alasan</th><th>Status</th>{canReview && <th></th>}</tr></thead>
           <tbody>
             {rows.map((o: Overtime) => (
               <tr key={o.id}>
                 <td>{o.workDate}</td>
                 {canReview && <td>{o.name ?? o.email}</td>}
-                <td>{o.minutes} mnt</td>
+                <td className="num">{o.minutes} mnt</td>
                 <td className="muted small">{o.reason ?? '—'}</td>
                 <td><span className={STATUS[o.status] ?? 'badge'}>{o.status}</span></td>
                 {canReview && (
@@ -85,9 +86,10 @@ export default function OvertimeTab({ me }: { me: Me }) {
                 )}
               </tr>
             ))}
-            {rows.length === 0 && <tr><td colSpan={canReview ? 6 : 4} className="muted">Belum ada pengajuan lembur.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={canReview ? 6 : 4} className="table-empty">Belum ada pengajuan lembur.</td></tr>}
           </tbody>
         </table>
+        </div>
       </div>
 
       <div className="card">
