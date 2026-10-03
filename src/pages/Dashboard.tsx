@@ -10,7 +10,6 @@ import type { Me } from '../App';
 import { Logo } from '../components/Brand';
 import DashHome from '../components/DashHome';
 import ClockCard from '../components/ClockCard';
-import HistoryTab from '../components/HistoryTab';
 import EmployeesTab from '../components/EmployeesTab';
 import LeavesTab from '../components/LeavesTab';
 import SettingsTab from '../components/SettingsTab';
@@ -18,6 +17,7 @@ import BillingTab from '../components/BillingTab';
 import PayrollPage from '../components/PayrollPage';
 import OvertimeTab from '../components/OvertimeTab';
 import CorrectionTab from '../components/CorrectionTab';
+import LaporanPage from '../pages/LaporanPage';
 
 type Tab = 'home' | 'clock' | 'history' | 'employees' | 'leaves' | 'overtime' | 'corrections' | 'payroll' | 'settings' | 'billing';
 
@@ -106,7 +106,7 @@ export default function Dashboard({ me, onLogout, refreshMe }: {
         {tab === 'leaves' && <LeavesTab me={me} />}
         {tab === 'overtime' && <OvertimeTab me={me} />}
         {tab === 'corrections' && <CorrectionTab me={me} />}
-        {tab === 'history' && <HistoryTab me={me} />}
+        {tab === 'history' && <LaporanPage me={me} />}
         {tab === 'payroll' && <PayrollPage />}
         {tab === 'settings' && <SettingsTab me={{ role: me.role, email: me.email }} />}
         {tab === 'billing' && <BillingTab me={me} />}
