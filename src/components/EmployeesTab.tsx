@@ -20,6 +20,8 @@ export default function EmployeesTab({ sites, onSitesChanged }: {
   // Form default tertutup — tabel dulu; terbuka lewat tombol "+ Tambah".
   const [showEmpForm, setShowEmpForm] = useState(false);
   const [showSiteForm, setShowSiteForm] = useState(false);
+  // Tab dalam halaman: fokus 1 bagian per tab (Karyawan / Lokasi Absen).
+  const [tab, setTab] = useState<'emp' | 'sites'>('emp');
 
   // ── Import Excel/CSV ──
   const [importing, setImporting] = useState(false);
@@ -129,7 +131,17 @@ export default function EmployeesTab({ sites, onSitesChanged }: {
   };
 
   return (
-    <div className="emp-col">
+    <>
+      <div className="page-tabs" role="tablist" aria-label="Bagian menu Karyawan">
+        <button role="tab" aria-selected={tab === 'emp'} onClick={() => setTab('emp')}>
+          Karyawan <span className="pt-count">{employees.length}</span>
+        </button>
+        <button role="tab" aria-selected={tab === 'sites'} onClick={() => setTab('sites')}>
+          <MapPin size={14} /> Lokasi Absen <span className="pt-count">{sites.length}</span>
+        </button>
+      </div>
+
+      {tab === 'emp' && (
       <div className="card">
         <div className="form-toggle-row">
           <h2>Karyawan ({employees.length})</h2>
@@ -247,7 +259,9 @@ export default function EmployeesTab({ sites, onSitesChanged }: {
         </table>
         </div>
       </div>
+      )}
 
+      {tab === 'sites' && (
       <div className="card">
         <div className="form-toggle-row">
           <h2><MapPin size={18} /> Lokasi Absen</h2>
@@ -255,15 +269,24 @@ export default function EmployeesTab({ sites, onSitesChanged }: {
             {showSiteForm ? <><X size={14} /> Tutup</> : <><Plus size={14} /> Tambah Lokasi</>}
           </button>
         </div>
-        <ul className="site-list">
-          {sites.map((s) => (              <li key={s.id}>
-                <div><strong>{s.name}</strong> <span className="muted radius-label">radius {s.radiusM} m</span>
-                {s.address && <div className="muted small">{s.address}</div>}</div>
-              <button className="icon-btn" aria-label={`Hapus lokasi ${s.name}`} title="Hapus lokasi" onClick={() => { void api.deleteSite(s.id).then(onSitesChanged); }}><Trash2 size={14} /></button>
-            </li>
-          ))}
-          {sites.length === 0 && <li className="muted">Belum ada lokasi.</li>}
-        </ul>
+        <div className="table-wrap" style={{ marginTop: 10 }}>
+          <table className="table">
+            <thead><tr><th>Nama Lokasi</th><th className="num">Radius</th><th>Alamat</th><th /></tr></thead>
+            <tbody>
+              {sites.map((s) => (
+                <tr key={s.id}>
+                  <td><b>{s.name}</b></td>
+                  <td className="num">{s.radiusM} m</td>
+                  <td className="muted">{s.address || '—'}</td>
+                  <td>
+                    <button className="icon-btn" aria-label={`Hapus lokasi ${s.name}`} title="Hapus lokasi" onClick={() => { void api.deleteSite(s.id).then(onSitesChanged); }}><Trash2 size={14} /></button>
+                  </td>
+                </tr>
+              ))}
+              {sites.length === 0 && <tr><td colSpan={4} className="table-empty">Belum ada lokasi absen — klik “Tambah Lokasi”.</td></tr>}
+            </tbody>
+          </table>
+        </div>
         {showSiteForm && (
           <form className="grid-form form-panel" onSubmit={(e) => { void addSite(e); }}>
             <input placeholder="Nama lokasi (mis. Kantor Pusat)" value={siteForm.name} onChange={(e) => setSiteForm({ ...siteForm, name: e.target.value })} required />
@@ -295,7 +318,9 @@ export default function EmployeesTab({ sites, onSitesChanged }: {
           </p>
         )}
       </div>
+      )}
+
       {error && <div className="error-box">{error}</div>}
-    </div>
+    </>
   );
 }

@@ -33,7 +33,7 @@ function ThrCard() {
   };
 
   return (
-    <div className="card" style={{ marginTop: 16 }}>
+    <div className="card">
       <div className="form-toggle-row">
         <h3><Gift size={16} style={{ verticalAlign: '-3px' }} /> THR {year}</h3>
         <select className="month-input" value={year} onChange={(e) => { setYear(Number(e.target.value)); setMsg(''); }}>
@@ -95,11 +95,15 @@ function ThrCard() {
   );
 }
 
+type PayrollTabId = 'proses' | 'slip' | 'bpjs' | 'thr' | 'unduh';
+
 export default function PayrollPage() {
   const qc = useQueryClient();
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
+  // Tab dalam halaman: fokus 1 langkah/tabel per tab.
+  const [tab, setTab] = useState<PayrollTabId>('proses');
 
   const { data: histData } = useQuery({ queryKey: ['history', month], queryFn: () => api.history(month) });
   const rows = histData?.rows ?? [];
@@ -139,6 +143,14 @@ export default function PayrollPage() {
   const absent = rows.filter((r) => r.status === 'absent').length;
   const label = new Date(`${month}-01`).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
 
+  const tabs: { id: PayrollTabId; label: string }[] = [
+    { id: 'proses', label: 'Proses Payroll' },
+    { id: 'slip', label: 'Slip Gaji' },
+    { id: 'bpjs', label: 'Validasi BPJS' },
+    { id: 'thr', label: 'THR' },
+    { id: 'unduh', label: 'Unduhan' },
+  ];
+
   return (
     <>
       <div className="main-head">
@@ -149,9 +161,18 @@ export default function PayrollPage() {
         <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="month-input" />
       </div>
 
-      <div className="pay-grid">
-        <div>
-          <div className="card" style={{ marginBottom: 16 }}>
+      <div className="page-tabs" role="tablist" aria-label="Bagian Payroll">
+        {tabs.map((t) => (
+          <button key={t.id} role="tab" aria-selected={tab === t.id}
+            onClick={() => { setMsg(''); setTab(t.id); }}>
+            {t.id === 'slip' ? <>Slip Gaji <span className="pt-count">{slips.length}</span></> : t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'proses' && (
+        <div className="pay-grid">
+          <div className="card">
             <h3>Langkah Payroll {label}</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
@@ -213,7 +234,120 @@ export default function PayrollPage() {
             </p>
           </div>
 
-          <div className="pay-tile" style={{ marginBottom: 12 }}>
+          <div className="card">
+            <h3>Ringkasan Absensi {label}</h3>
+            <div className="summary-kpis" style={{ marginTop: 12 }}>
+              <div><b>{present}</b><span>Hadir</span></div>
+              <div><b>{late}</b><span>Telat</span></div>
+              <div><b>{onLeave}</b><span>Izin/Sakit</span></div>
+              <div><b>{absent}</b><span>Absen</span></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab === 'slip' && (
+        <div className="card">
+          <h3>Slip Gaji ({slips.length}) — Total Net {rp(totalNet)}</h3>
+          {slips.length === 0 ? (
+            <p className="muted small" style={{ marginTop: 8 }}>
+              Belum ada slip. Kunci periode lalu hitung draft di tab Proses Payroll. Karyawan tanpa
+              gaji pokok dilewati — atur di tab Karyawan.
+            </p>
+          ) : (
+            <>
+            <div className="table-wrap" style={{ marginTop: 10 }}>
+            <table className="table">
+              <thead><tr><th>Nama</th><th>PTKP</th><th className="num">Gaji Pokok</th><th className="num">Lembur</th><th className="num">Potongan Absen</th><th className="num">PPh 21</th><th className="num">BPJS Kry.</th><th className="num">Net</th></tr></thead>
+              <tbody>
+                {slips.map((s) => (
+                  <tr key={s.id}>
+                    <td>{s.name ?? s.email}</td>
+                    <td className="muted small">{s.ptkp ?? 'TK/0'}</td>
+                    <td className="num">{rp(s.base_salary)}</td>
+                    <td className="num">{s.overtime_minutes > 0 ? `${s.overtime_minutes} mnt · ${rp(s.overtime_pay)}` : '—'}</td>
+                    <td className="num">{s.absence_deduction > 0 ? `−${rp(s.absence_deduction)}` : '—'}</td>
+                    <td className="num">{(s.pph21 ?? 0) > 0 ? `${rp(s.pph21!)} (${((s.pph21_rate ?? 0) * 100).toFixed(2)}%)` : '—'}</td>
+                    <td className="num">{(s.bpjs_employee ?? 0) > 0 ? rp(s.bpjs_employee!) : '—'}</td>
+                    <td className="num"><b>{rp(s.net_pay)}</b></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            </div>
+            <p className="muted small" style={{ marginTop: 8 }}>
+              PPh 21 = TER (PP 58/2023) × bruto (gaji − potongan hadir + lembur − JHT/JP karyawan).
+              BPJS karyawan = JHT 2% + JP 1% + JKP 0,06% + Kesehatan 1% (JP & Kesehatan mengikuti plafon upah).
+              Iuran perusahaan tersimpan pada rincian slip & CSV.
+            </p>
+            </>
+          )}
+        </div>
+      )}
+
+      {tab === 'bpjs' && (
+        <div className="card">
+          <h3>
+            {bpjsDiff && bpjsDiff.checked > 0 && bpjsDiff.bedaCount + bpjsDiff.tanpaSnapshot === 0
+              ? <ShieldCheck size={16} style={{ verticalAlign: '-3px', color: 'seagreen' }} />
+              : <AlertTriangle size={16} style={{ verticalAlign: '-3px', color: '#B97D0E' }} />}
+            {' '}Validasi BPJS vs Config Aktif
+          </h3>
+          {bpjsDiff && bpjsDiff.checked > 0 ? (
+            bpjsDiff.bedaCount + bpjsDiff.tanpaSnapshot === 0 ? (
+              <p className="muted small" style={{ marginTop: 8 }}>
+                Semua iuran BPJS pada {bpjsDiff.checked} slip {label} sesuai konfigurasi aktif.
+              </p>
+            ) : (
+              <>
+                <p className="small" style={{ marginTop: 8 }}>
+                  <b style={{ color: '#B97D0E' }}>
+                    {bpjsDiff.bedaCount > 0 && `${bpjsDiff.bedaCount} slip beda tarif`}
+                    {bpjsDiff.bedaCount > 0 && bpjsDiff.tanpaSnapshot > 0 && ' · '}
+                    {bpjsDiff.tanpaSnapshot > 0 && `${bpjsDiff.tanpaSnapshot} slip tanpa rincian`}
+                  </b>{' '}
+                  dibanding config BPJS yang berlaku sekarang:
+                </p>
+                <div className="table-wrap" style={{ marginTop: 8 }}>
+                <table className="table">
+                  <thead><tr><th>Karyawan</th><th>Status</th><th>Selisih</th></tr></thead>
+                  <tbody>
+                    {bpjsDiff.rows.map((r) => (
+                      <tr key={r.email}>
+                        <td>{r.name}</td>
+                        <td>
+                          <span className={`badge ${r.status === 'BEDA' ? 'leave-pending' : ''}`}
+                            style={r.status !== 'BEDA' ? { background: '#FDF3DF', color: '#B97D0E' } : undefined}>
+                            {r.status}
+                          </span>
+                        </td>
+                        <td className="muted small">{r.catatan}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                </div>
+                <p className="muted small" style={{ marginTop: 8 }}>
+                  Snapshot slip tidak berubah setelah final. Atur tarif di Pengaturan → tab BPJS,
+                  lalu hitung ulang payroll bulan berjalan bila perlu.
+                </p>
+              </>
+            )
+          ) : (
+            <p className="muted small" style={{ marginTop: 8 }}>
+              Belum ada data slip untuk divalidasi pada {label}. Kunci periode lalu hitung draft di
+              tab Proses Payroll — setelah slip terbentuk, iuran BPJS tiap slip dibandingkan dengan
+              konfigurasi aktif di Pengaturan.
+            </p>
+          )}
+        </div>
+      )}
+
+      {tab === 'thr' && <ThrCard />}
+
+      {tab === 'unduh' && (
+        <div className="pay-grid">
+          <div className="pay-tile">
             <span className="pay-file-icon pfi-csv">CSV</span>
             <div style={{ flex: 1 }}>
               <b>Timesheet Payroll CSV</b>
@@ -221,7 +355,7 @@ export default function PayrollPage() {
             </div>
             <button className="btn btn-primary" onClick={() => api.exportTimesheet(month)}><Download size={15} /> Unduh</button>
           </div>
-          <div className="pay-tile" style={{ marginBottom: 12 }}>
+          <div className="pay-tile">
             <span className="pay-file-icon pfi-xls"><FileSpreadsheet size={20} /></span>
             <div style={{ flex: 1 }}>
               <b>Rekap Absensi CSV</b>
@@ -229,7 +363,7 @@ export default function PayrollPage() {
             </div>
             <button className="btn btn-ghost" onClick={() => api.exportCsv(month)}><FileText size={15} /> Unduh</button>
           </div>
-          <div className="pay-tile" style={{ marginBottom: 12 }}>
+          <div className="pay-tile">
             <span className="pay-file-icon pfi-csv"><Banknote size={20} /></span>
             <div style={{ flex: 1 }}>
               <b>Slip Gaji CSV {label}</b>
@@ -237,7 +371,7 @@ export default function PayrollPage() {
             </div>
             <button className="btn btn-ghost" disabled={slips.length === 0} onClick={() => api.exportPayslips(month)}><Download size={15} /> Unduh</button>
           </div>
-          <div className="pay-tile" style={{ marginBottom: 12 }}>
+          <div className="pay-tile">
             <span className="pay-file-icon pfi-csv"><FileText size={20} /></span>
             <div style={{ flex: 1 }}>
               <b>Rekap SPT Masa PPh 21 {label}</b>
@@ -245,7 +379,7 @@ export default function PayrollPage() {
             </div>
             <button className="btn btn-ghost" disabled={slips.length === 0} onClick={() => api.exportRecapSpt(month)}><Download size={15} /> Unduh</button>
           </div>
-          <div className="pay-tile" style={{ marginBottom: 12 }}>
+          <div className="pay-tile">
             <span className="pay-file-icon pfi-csv"><Banknote size={20} /></span>
             <div style={{ flex: 1 }}>
               <b>Rekap Iuran BPJS (JAMSOSTEK) {label}</b>
@@ -262,108 +396,7 @@ export default function PayrollPage() {
             <button className="btn btn-ghost" onClick={() => api.exportRecapAnnual(Number(month.slice(0, 4)))}><Download size={15} /> Unduh</button>
           </div>
         </div>
-
-        <div>
-          <div className="card" style={{ marginBottom: 16 }}>
-            <h3>Ringkasan Absensi {label}</h3>
-            <div className="summary-kpis" style={{ marginTop: 12 }}>
-              <div><b>{present}</b><span>Hadir</span></div>
-              <div><b>{late}</b><span>Telat</span></div>
-              <div><b>{onLeave}</b><span>Izin/Sakit</span></div>
-              <div><b>{absent}</b><span>Absen</span></div>
-            </div>
-          </div>
-
-          {bpjsDiff && bpjsDiff.checked > 0 && (
-            <div className="card" style={{ marginBottom: 16 }}>
-              <h3>
-                {bpjsDiff.bedaCount + bpjsDiff.tanpaSnapshot === 0
-                  ? <ShieldCheck size={16} style={{ verticalAlign: '-3px', color: 'seagreen' }} />
-                  : <AlertTriangle size={16} style={{ verticalAlign: '-3px', color: '#B97D0E' }} />}
-                {' '}Validasi BPJS vs Config Aktif
-              </h3>
-              {bpjsDiff.bedaCount + bpjsDiff.tanpaSnapshot === 0 ? (
-                <p className="muted small" style={{ marginTop: 8 }}>
-                  Semua iuran BPJS pada {bpjsDiff.checked} slip {label} sesuai konfigurasi aktif.
-                </p>
-              ) : (
-                <>
-                  <p className="small" style={{ marginTop: 8 }}>
-                    <b style={{ color: '#B97D0E' }}>
-                      {bpjsDiff.bedaCount > 0 && `${bpjsDiff.bedaCount} slip beda tarif`}
-                      {bpjsDiff.bedaCount > 0 && bpjsDiff.tanpaSnapshot > 0 && ' · '}
-                      {bpjsDiff.tanpaSnapshot > 0 && `${bpjsDiff.tanpaSnapshot} slip tanpa rincian`}
-                    </b>{' '}
-                    dibanding config BPJS yang berlaku sekarang:
-                  </p>
-                  <div className="table-wrap" style={{ marginTop: 8 }}>
-                  <table className="table">
-                    <thead><tr><th>Karyawan</th><th>Status</th><th>Selisih</th></tr></thead>
-                    <tbody>
-                      {bpjsDiff.rows.map((r) => (
-                        <tr key={r.email}>
-                          <td>{r.name}</td>
-                          <td>
-                            <span className={`badge ${r.status === 'BEDA' ? 'leave-pending' : ''}`}
-                              style={r.status !== 'BEDA' ? { background: '#FDF3DF', color: '#B97D0E' } : undefined}>
-                              {r.status}
-                            </span>
-                          </td>
-                          <td className="muted small">{r.catatan}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  </div>
-                  <p className="muted small" style={{ marginTop: 8 }}>
-                    Snapshot slip tidak berubah setelah final. Atur tarif di Pengaturan → Konfigurasi BPJS,
-                    lalu hitung ulang payroll bulan berjalan bila perlu.
-                  </p>
-                </>
-              )}
-            </div>
-          )}
-
-          <div className="card">
-            <h3>Slip Gaji ({slips.length}) — Total Net {rp(totalNet)}</h3>
-            {slips.length === 0 ? (
-              <p className="muted small" style={{ marginTop: 8 }}>
-                Belum ada slip. Kunci periode lalu hitung draft. Karyawan tanpa gaji pokok dilewati —
-                atur di tab Karyawan.
-              </p>
-            ) : (
-              <>
-              <div className="table-wrap" style={{ marginTop: 10 }}>
-              <table className="table">
-                <thead><tr><th>Nama</th><th>PTKP</th><th className="num">Gaji Pokok</th><th className="num">Lembur</th><th className="num">Potongan Absen</th><th className="num">PPh 21</th><th className="num">BPJS Kry.</th><th className="num">Net</th></tr></thead>
-                <tbody>
-                  {slips.map((s) => (
-                    <tr key={s.id}>
-                      <td>{s.name ?? s.email}</td>
-                      <td className="muted small">{s.ptkp ?? 'TK/0'}</td>
-                      <td className="num">{rp(s.base_salary)}</td>
-                      <td className="num">{s.overtime_minutes > 0 ? `${s.overtime_minutes} mnt · ${rp(s.overtime_pay)}` : '—'}</td>
-                      <td className="num">{s.absence_deduction > 0 ? `−${rp(s.absence_deduction)}` : '—'}</td>
-                      <td className="num">{(s.pph21 ?? 0) > 0 ? `${rp(s.pph21!)} (${((s.pph21_rate ?? 0) * 100).toFixed(2)}%)` : '—'}</td>
-                      <td className="num">{(s.bpjs_employee ?? 0) > 0 ? rp(s.bpjs_employee!) : '—'}</td>
-                      <td className="num"><b>{rp(s.net_pay)}</b></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              </div>
-              <p className="muted small" style={{ marginTop: 8 }}>
-                PPh 21 = TER (PP 58/2023) × bruto (gaji − potongan hadir + lembur − JHT/JP karyawan).
-                BPJS karyawan = JHT 2% + JP 1% + JKP 0,06% + Kesehatan 1% (JP & Kesehatan mengikuti plafon upah).
-                Iuran perusahaan tersimpan pada rincian slip & CSV.
-              </p>
-              </>
-            )}
-          </div>
-
-          <ThrCard />
-        </div>
-      </div>
+      )}
     </>
   );
 }

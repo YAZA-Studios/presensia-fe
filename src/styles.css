@@ -530,6 +530,27 @@ label.mini { display: flex; flex-direction: column; gap: 5px; font-size: 12px; f
 .main { padding: 0 clamp(18px, 3vw, 36px) 36px; max-width: 1160px; width: 100%; margin: 0 auto; position: relative; }
 .main > *:not(.app-topbar) { position: relative; z-index: 1; }
 .main > .card, .main > .home-grid, .main > .analytics, .main > .clock-grid, .main > .two-col { margin-top: 22px; }
+
+/* ── Tab dalam halaman: fokus 1 bagian/tabel per tab ─────────── */
+.page-tabs {
+  display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+  margin: 0 0 18px; padding: 5px; width: fit-content; max-width: 100%;
+  background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow-sm);
+}
+.page-tabs button {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font: inherit; font-size: 13.5px; font-weight: 700; color: var(--muted);
+  padding: 8px 14px; border-radius: 9px; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: background .15s ease, color .15s ease;
+}
+.page-tabs button:hover { background: var(--bg); color: var(--navy); }
+.page-tabs button[aria-selected="true"] { background: var(--mint-bg); color: var(--teal-dark); }
+.page-tabs .pt-count {
+  font-size: 11px; font-weight: 800; line-height: 1; padding: 3px 7px; border-radius: 99px;
+  background: rgba(18,60,90,.08); color: var(--muted);
+}
+.page-tabs button[aria-selected="true"] .pt-count { background: rgba(14,124,108,.14); color: var(--teal-dark); }
 .main-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; gap: 14px; flex-wrap: wrap; }
 .main-head h1 { font-size: 22px; font-weight: 900; color: var(--navy-deep); margin: 0; }
 .main-head .muted { font-size: 13px; }
@@ -625,8 +646,6 @@ label.mini { display: flex; flex-direction: column; gap: 5px; font-size: 12px; f
 .stat { font-size: 13px; color: var(--muted); }
 .stat strong { color: var(--navy-deep); font-size: 15px; }
 .two-col { display: grid; grid-template-columns: 1fr 1.2fr; gap: 18px; align-items: start; }
-/* Tab Karyawan: tabel utama dominan, panel lokasi menyusul */
-.emp-col { display: grid; grid-template-columns: minmax(0, 2.4fr) minmax(280px, 1fr); gap: 18px; align-items: start; }
 .export-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
 /* ── KPI analytics ───────────────────────────────────────────── */
@@ -690,9 +709,6 @@ label.mini { display: flex; flex-direction: column; gap: 5px; font-size: 12px; f
 }
 .challenge-live .selfie-preview { border-radius: 12px; max-width: 200px; }
 .tips { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--muted); }
-.site-list { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.site-list .radius-label { white-space: nowrap; }
-.site-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--bg); border-radius: 10px; padding: 10px 12px; font-size: 13.5px; }
 .role-select { min-width: 170px; }
 
 /* ── Payroll ─────────────────────────────────────────────────── */
@@ -719,7 +735,7 @@ label.mini { display: flex; flex-direction: column; gap: 5px; font-size: 12px; f
   .lp-hero { grid-template-columns: 1fr; }
   .feat { grid-template-columns: 1fr; }
   .feat.rev .feat-visual { order: -1; }
-  .home-grid, .two-col, .emp-col, .clock-grid, .analytics-grid, .pay-grid, .testi-grid, .auth-wrap { grid-template-columns: 1fr; }
+  .home-grid, .two-col, .clock-grid, .analytics-grid, .pay-grid, .testi-grid, .auth-wrap { grid-template-columns: 1fr; }
   .auth-side { display: none; }
   .auth-form-side { padding: 24px 16px; background: radial-gradient(circle at 20% 10%, rgba(0,194,168,.12), transparent 28%), #f4f8fb; }
   .auth-card { padding: 26px 20px; }
