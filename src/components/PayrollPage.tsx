@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { FileText, FileSpreadsheet, Download, Wallet, Lock, Unlock, PlayCircle, CheckCircle2, Banknote, Gift } from 'lucide-react';
+import { FileText, FileSpreadsheet, Download, Wallet, Lock, Unlock, PlayCircle, CheckCircle2, Banknote, Gift, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { api, rp, type Payslip, type ThrAward } from '../api';
 
 /** Kartu THR tahunan (BR-13): hitung draft prorata masa kerja → final → CSV.
@@ -118,6 +118,13 @@ export default function PayrollPage() {
   });
   const slips: Payslip[] = slipData?.payslips ?? [];
   const totalNet = slips.reduce((a, s) => a + (s.net_pay || 0), 0);
+
+  // Validasi snapshot iuran BPJS slip vs config aktif (preview visual).
+  const { data: bpjsDiff } = useQuery({
+    queryKey: ['bpjs-check', month],
+    queryFn: () => api.bpjsCheck(month),
+    enabled: !!run && slips.length > 0,
+  });
 
   const act = async (fn: () => Promise<unknown>, ok: string): Promise<void> => {
     setBusy(true); setMsg('');
@@ -265,6 +272,54 @@ export default function PayrollPage() {
               <div><b>{absent}</b><span>Absen</span></div>
             </div>
           </div>
+
+          {bpjsDiff && bpjsDiff.checked > 0 && (
+            <div className="card" style={{ marginBottom: 16 }}>
+              <h3>
+                {bpjsDiff.bedaCount + bpjsDiff.tanpaSnapshot === 0
+                  ? <ShieldCheck size={16} style={{ verticalAlign: '-3px', color: 'seagreen' }} />
+                  : <AlertTriangle size={16} style={{ verticalAlign: '-3px', color: '#B97D0E' }} />}
+                {' '}Validasi BPJS vs Config Aktif
+              </h3>
+              {bpjsDiff.bedaCount + bpjsDiff.tanpaSnapshot === 0 ? (
+                <p className="muted small" style={{ marginTop: 8 }}>
+                  Semua iuran BPJS pada {bpjsDiff.checked} slip {label} sesuai konfigurasi aktif.
+                </p>
+              ) : (
+                <>
+                  <p className="small" style={{ marginTop: 8 }}>
+                    <b style={{ color: '#B97D0E' }}>
+                      {bpjsDiff.bedaCount > 0 && `${bpjsDiff.bedaCount} slip beda tarif`}
+                      {bpjsDiff.bedaCount > 0 && bpjsDiff.tanpaSnapshot > 0 && ' · '}
+                      {bpjsDiff.tanpaSnapshot > 0 && `${bpjsDiff.tanpaSnapshot} slip tanpa rincian`}
+                    </b>{' '}
+                    dibanding config BPJS yang berlaku sekarang:
+                  </p>
+                  <table className="table" style={{ marginTop: 8 }}>
+                    <thead><tr><th>Karyawan</th><th>Status</th><th>Selisih</th></tr></thead>
+                    <tbody>
+                      {bpjsDiff.rows.map((r) => (
+                        <tr key={r.email}>
+                          <td>{r.name}</td>
+                          <td>
+                            <span className={`badge ${r.status === 'BEDA' ? 'leave-pending' : ''}`}
+                              style={r.status !== 'BEDA' ? { background: '#FDF3DF', color: '#B97D0E' } : undefined}>
+                              {r.status}
+                            </span>
+                          </td>
+                          <td className="muted small">{r.catatan}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="muted small" style={{ marginTop: 8 }}>
+                    Snapshot slip tidak berubah setelah final. Atur tarif di Pengaturan → Konfigurasi BPJS,
+                    lalu hitung ulang payroll bulan berjalan bila perlu.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
 
           <div className="card">
             <h3>Slip Gaji ({slips.length}) — Total Net {rp(totalNet)}</h3>

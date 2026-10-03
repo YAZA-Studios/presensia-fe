@@ -179,6 +179,14 @@ export const api = {
     const b = import.meta.env.VITE_API_URL || '/api';
     window.open(`${b}/payroll/recap/annual?year=${year}`, '_blank');
   },
+  // PDF bukti potong 1721-A1 setahun (worker-generated via pdf-lib).
+  exportRecapAnnualPdf: (year: number): void => {
+    const b = import.meta.env.VITE_API_URL || '/api';
+    window.open(`${b}/payroll/recap/annual/pdf?year=${year}`, '_blank');
+  },
+  // Preview validasi snapshot iuran BPJS slip vs config aktif (JSON).
+  bpjsCheck: (month: string) =>
+    request<{ month: string; checked: number; bedaCount: number; tanpaSnapshot: number; rows: BpjsDiffRow[] }>(`/payroll/recap/bpjs-check?month=${month}`),
 
   summary: () => request<Summary>('/analytics/summary'),
   live: () => request<{ activities: LiveActivity[] }>('/analytics/live'),
@@ -260,4 +268,6 @@ export interface PayrollRun { id: string; month: string; status: string; created
 export interface ThrRun { id: string; year: number; ref_date: string; status: string; total?: number; created_by?: string; finalized_by?: string | null; finalized_at?: string | null; created_at: string; award_count?: number; eligible_count?: number; config?: string | null }
 export interface ThrAward { email: string; name: string | null; hireDate: string | null; monthsWorked: number; prorataFactor: number; eligible: boolean; amount: number; reason: string | null }
 export interface Payslip { id: string; run_id: string; email: string; name?: string; month: string; base_salary: number; present_days: number; late_minutes: number; overtime_minutes: number; overtime_pay: number; absence_deduction: number; net_pay: number; gross_monthly?: number; pph21?: number; pph21_rate?: number; bpjs_employee?: number; bpjs_company?: number; ptkp?: string; detail?: string }
+/** Baris selisih BPJS: snapshot slip vs config aktif (BEDA / TANPA SNAPSHOT). */
+export interface BpjsDiffRow { email: string; name: string; status: string; catatan: string }
 export const rp = (n: number): string => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(n ?? 0);
