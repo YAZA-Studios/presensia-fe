@@ -12,19 +12,43 @@ export default function AuthPage({ mode, onAuthed }: {
   const [busy, setBusy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  // Alur email: pendaftaran menunggu aktivasi / kirim ulang verifikasi.
+  const [notice, setNotice] = useState('');
+  const [needVerify, setNeedVerify] = useState(false);
 
   const submit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
-    setError('');
+    setError(''); setNotice(''); setNeedVerify(false);
     if (isReg && !acceptedTerms) { setError('Setujui Terms of Service dan Privacy Policy untuk melanjutkan.'); return; }
     if (form.password.length < 8) { setError('Kata sandi harus memiliki minimal 8 karakter.'); return; }
     setBusy(true);
     try {
-      const me = isReg
-        ? await api.register(form)
-        : await api.login({ email: form.email, password: form.password });
+      if (isReg) {
+        const res = await api.register(form);
+        // Layanan email aktif → akun menunggu konfirmasi email (tanpa sesi).
+        if (res.verificationRequired) {
+          setNotice(`Akun dibuat! Kami mengirim tautan aktivasi ke ${form.email} (berlaku 48 jam). Buka tautan itu, lalu masuk di sini.`);
+          return;
+        }
+        onAuthed(res);
+        window.location.hash = '#/app';
+        return;
+      }
+      const me = await api.login({ email: form.email, password: form.password });
       onAuthed(me);
       window.location.hash = '#/app';
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : 'Terjadi kesalahan.';
+      setError(msg);
+      setNeedVerify(msg.includes('belum diverifikasi'));
+    } finally { setBusy(false); }
+  };
+
+  const resendVerification = async (): Promise<void> => {
+    setError(''); setNotice(''); setBusy(true);
+    try {
+      await api.resendVerification(form.email);
+      setNotice('Email verifikasi dikirim ulang — cek kotak masuk (dan folder spam).');
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Terjadi kesalahan.');
     } finally { setBusy(false); }
@@ -79,6 +103,17 @@ export default function AuthPage({ mode, onAuthed }: {
             </button>
           </form>
           {error && <div className="error-box">{error}</div>}
+          {needVerify && (
+            <button type="button" className="btn btn-ghost btn-block" style={{ marginTop: 8 }} disabled={busy}
+              onClick={() => { void resendVerification(); }}>
+              Kirim ulang email verifikasi
+            </button>
+          )}
+          {notice && (
+            <div className="error-box" style={{ borderColor: '#2E7D63', color: '#2E7D63', background: '#EAF5F0' }}>
+              {notice}
+            </div>
+          )}
           <p className="auth-alt">
             {isReg
               ? <>Sudah punya akun? <a href="#/masuk">Masuk</a></>

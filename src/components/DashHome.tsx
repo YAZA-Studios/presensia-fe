@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Clock, MapPin, Users } from 'lucide-react';
-import { api, type Site, type Summary } from '../api';
+import { api, type Site } from '../api';
 import type { Me } from '../App';
 
 /** Halaman Dashboard setelah login — welcome, clock-in besar, status hari ini,
@@ -8,14 +8,15 @@ import type { Me } from '../App';
 export default function DashHome({ me, sites, goClock, today, onClocked }: {
   me: Me; sites: Site[]; goClock: () => void; today: string; onClocked: () => Promise<void>;
 }) {
-  const [att, setAtt] = useState<{ clockInAt: string | null; clockOutAt: string | null; status: string } | null>(null);
-  const [sum, setSum] = useState<Summary | null>(null);
   const isAdmin = me.role !== 'employee';
-
-  useEffect(() => {
-    api.today().then((r) => setAtt(r.attendance)).catch(() => {});
-    if (isAdmin) api.summary().then(setSum).catch(() => {});
-  }, [isAdmin]);
+  const { data: todayData } = useQuery({ queryKey: ['today'], queryFn: () => api.today() });
+  const { data: sumData } = useQuery({
+    queryKey: ['summary'],
+    queryFn: () => api.summary(),
+    enabled: isAdmin,
+  });
+  const att = todayData?.attendance ?? null;
+  const sum = sumData ?? null;
 
   const site = sites[0];
   const status = att ? (att.status === 'present' ? 'Present' : att.status === 'late' ? 'Late' : att.status) : 'Belum absen';

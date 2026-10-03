@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Download, Users, CheckCircle2, AlertTriangle, CalendarX2, Palmtree, Activity } from 'lucide-react';
-import { api, type Summary, type LiveActivity } from '../api';
+import { api } from '../api';
 
 const KPI = [
   { key: 'present', label: 'Hadir', icon: CheckCircle2, cls: 'kpi-green' },
@@ -10,16 +11,17 @@ const KPI = [
 ] as const;
 
 export default function AnalyticsTab() {
-  const [sum, setSum] = useState<Summary | null>(null);
-  const [live, setLive] = useState<LiveActivity[]>([]);
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
 
-  useEffect(() => {
-    api.summary().then(setSum).catch(() => {});
-    api.live().then((r) => setLive(r.activities)).catch(() => {});
-    const t = setInterval(() => { api.live().then((r) => setLive(r.activities)).catch(() => {}); }, 15_000);
-    return () => clearInterval(t);
-  }, []);
+  // Live feed: refetch tiap 15 detik hanya saat tab ini terbuka.
+  const { data: sumData } = useQuery({ queryKey: ['summary'], queryFn: () => api.summary() });
+  const { data: liveData } = useQuery({
+    queryKey: ['live'],
+    queryFn: () => api.live(),
+    refetchInterval: 15_000,
+  });
+  const sum = sumData ?? null;
+  const live = liveData?.activities ?? [];
 
   if (!sum) return <div className="card"><p className="muted">Memuat dashboard…</p></div>;
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   ShieldCheck, Cog, Timer, LineChart, Check, Lock, Globe2, Database,
-  Facebook, Twitter, Youtube, Instagram, Coffee, Factory, Store, ChevronRight,
+  Coffee, Factory, Store, ChevronRight,
 } from 'lucide-react';
 import { api, type Plan } from '../api';
 import { Logo, LogoMark } from '../components/Brand';
@@ -11,8 +11,8 @@ function HeroDashboard(): React.ReactNode {
   const bars = [38, 62, 45, 80, 55, 92];
   return (
     <div className="hero-dashboard">
-      <div className="hero-dash-top"><Logo size={18} /><span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--muted)', fontWeight: 700 }}>Dashboard Setiap Saat</span></div>
-      <div className="hero-kpis"><div className="hero-kpi hero-kpi-blue"><span>Preview Device</span><b>1,578</b></div><div className="hero-kpi hero-kpi-red"><span>Telat Hari Ini</span><b>0</b></div><div className="hero-kpi hero-kpi-green"><span>Total Hadir</span><b>4,734</b></div></div>
+      <div className="hero-dash-top"><Logo size={18} /><span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--muted)', fontWeight: 700 }}>Ilustrasi dashboard</span></div>
+      <div className="hero-kpis"><div className="hero-kpi hero-kpi-blue"><span>Tim terjadwal</span><b>48</b></div><div className="hero-kpi hero-kpi-red"><span>Terlambat</span><b>2</b></div><div className="hero-kpi hero-kpi-green"><span>Sudah hadir</span><b>46</b></div></div>
       <div className="hero-rows">{['Mira Sari', 'Rian Hadi', 'Dewi Lestari'].map((name, row) => <div key={name} className="hero-row"><span className="hero-avatar">{name[0]}</span><b>{name}</b><span className={`hero-pill ${row === 1 ? 'pill-amber' : 'pill-green'}`}>{row === 1 ? 'Late' : 'On-time'}</span><span className="hero-bars">{bars.map((h, i) => <i key={i} style={{ height: `${h}%` }} />)}</span></div>)}</div>
     </div>
   );
@@ -97,18 +97,16 @@ export default function LandingPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   useEffect(() => { api.plans().then((r) => setPlans(r.plans)).catch(() => {}); }, []);
 
-  const scrollTo = (id: string): void => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-
   return (
     <div className="lp">
       {/* NAV */}
       <nav className="lp-nav">
         <a href="#top"><Logo size={30} /></a>
         <div className="lp-nav-links">
-          <a onClick={() => scrollTo('features')} href="#features">Features</a>
-          <a onClick={() => scrollTo('pricing')} href="#pricing">Pricing</a>
-          <a onClick={() => scrollTo('how')} href="#how">Demo</a>
-          <a onClick={() => scrollTo('footer')} href="#footer">Support</a>
+          <a href="#features">Fitur</a>
+          <a href="#pricing">Harga</a>
+          <a href="#how">Cara kerja</a>
+          <a href="#footer">Bantuan</a>
         </div>
         <div className="lp-nav-cta">
           <a className="btn btn-primary btn-sm" href="#/masuk">Login</a>
@@ -118,11 +116,12 @@ export default function LandingPage() {
       {/* HERO */}
       <header className="lp-hero" id="top">
         <div className="lp-hero-copy">
-          <h1>Absensi Cerdas<br />Tanpa Celah<br /><em>Kecurangan</em></h1>
-          <p className="lp-tagline">Precision. Presence.<br />World-Class Attendance.</p>
+          <p className="lp-eyebrow">UNTUK TIM YANG TERUS BERGERAK</p>
+          <h1>Absensi rapi.<br /><em>Tim lebih terarah.</em></h1>
+          <p className="lp-tagline">Kelola kehadiran, shift, dan pengajuan cuti dalam satu tempat. Dari absen pertama hingga rekap akhir bulan.</p>
           <div className="lp-hero-ctas">
             <a className="btn btn-primary btn-lg" href="#/daftar">Coba Gratis</a>
-            <a className="btn btn-secondary btn-lg" onClick={() => scrollTo('features')} href="#features">Lihat Demo</a>
+            <a className="btn btn-secondary btn-lg" href="#how">Lihat cara kerja</a>
           </div>
         </div>
         <div className="lp-hero-visual">
@@ -138,14 +137,14 @@ export default function LandingPage() {
 
       {/* PARTNER STRIP */}
       <section className="lp-partners">
-        <h4>Partner Companies</h4>
+        <h4>Dirancang untuk beragam cara kerja</h4>
         <div className="lp-partners-row">
-          <span className="lp-partner"><Coffee size={17} /> KopiKita</span>
-          <span className="lp-partner"><Factory size={17} /> TextilePro</span>
-          <span className="lp-partner"><Store size={17} /> RetailMart</span>
-          <span className="lp-partner"><Cog size={17} /> Manufaktur+ </span>
-          <span className="lp-partner"><LogoMark size={18} /> presensia</span>
-          <span className="lp-partner"><Globe2 size={17} /> LogistiX</span>
+          <span className="lp-partner"><Coffee size={17} /> Kafe & restoran</span>
+          <span className="lp-partner"><Factory size={17} /> Manufaktur</span>
+          <span className="lp-partner"><Store size={17} /> Toko & retail</span>
+          <span className="lp-partner"><Cog size={17} /> Operasional</span>
+          <span className="lp-partner"><LogoMark size={18} /> Tim kantor</span>
+          <span className="lp-partner"><Globe2 size={17} /> Multi-cabang</span>
         </div>
       </section>
 
@@ -259,29 +258,9 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
-      <section className="lp-section">
-        <span className="lp-kicker">Testimonials</span>
-        <h2 className="lp-title">Dipercaya tim HR di berbagai industri</h2>
-        <div className="testi-grid">
-          <div className="testi"><div className="testi-quote-mark">“</div>
-            <p>Akhirnya rekap absensi tidak perlu dikejar lagi. Geofencing dan kode verifikasi bikin titip absen hilang total.</p>
-            <div className="testi-who"><span className="testi-ava ta-1">RS</span><div><b>Ratna Sari</b><span>HR Manager — RetailMart</span></div></div></div>
-          <div className="testi"><div className="testi-quote-mark">“</div>
-            <p>Shift malam lintas tanggal kini terhitung benar. Ekspor payroll-nya langsung dipakai tim keuangan tanpa revisi.</p>
-            <div className="testi-who"><span className="testi-ava ta-2">BP</span><div><b>Budi Pratama</b><span>GA Head — TextilePro</span></div></div></div>
-          <div className="testi"><div className="testi-quote-mark">“</div>
-            <p>Approval cuti dua tingkat dan delegasi wewenang membuat proses HR kami rapi bahkan saat manager dinas luar.</p>
-            <div className="testi-who"><span className="testi-ava ta-3">AW</span><div><b>Anisa Wibowo</b><span>People Ops — LogistiX</span></div></div></div>
-          <div className="testi"><div className="testi-quote-mark">“</div>
-            <p>Presisi. Presence. Benar-benar world-class. Dashboard-nya jadi layar pertama yang kami buka tiap pagi.</p>
-            <div className="testi-who"><span className="testi-ava ta-4">DH</span><div><b>Dimas Hartono</b><span>COO — KopiKita</span></div></div></div>
-        </div>
-      </section>
-
       {/* PRICING */}
       <section className="lp-section" id="pricing">
-        <span className="lp-kicker">Pricing Grid</span>
+        <span className="lp-kicker">Paket langganan</span>
         <h2 className="lp-title">Harga jujur, skalabel</h2>
         <p className="lp-lead">Mulai gratis, naik saat tim tumbuh. Semua paket termasuk geofencing, selfie verifikasi, dan dashboard real-time.</p>
         <div className="price-grid">
@@ -310,22 +289,22 @@ export default function LandingPage() {
 
       {/* SECURITY */}
       <section className="lp-section">
-        <span className="lp-kicker">Security &amp; Compliance</span>
-        <h2 className="lp-title">Keamanan kelas enterprise</h2>
+        <span className="lp-kicker">Perlindungan data</span>
+        <h2 className="lp-title">Akses sesuai tanggung jawab</h2>
         <div className="sec-grid">
           <div className="sec-item"><div className="sec-icon"><Lock size={20} /></div>
-            <div><b>Encrypted Data</b><span>Sesi HMAC, PBKDF2 300k iterasi, selfie ber-otorisasi di R2.</span></div></div>
+            <div><b>Akses terkontrol</b><span>Data absensi dan foto hanya dapat diakses melalui akun yang berwenang.</span></div></div>
           <div className="sec-item"><div className="sec-icon"><ShieldCheck size={20} /></div>
-            <div><b>Standar ISO-aligned</b><span>Audit trail append-only, koreksi dengan alasan, rate limiting.</span></div></div>
+            <div><b>Koreksi dapat ditelusuri</b><span>Perubahan catatan absensi disertai alasan untuk membantu pemeriksaan.</span></div></div>
           <div className="sec-item"><div className="sec-icon"><Database size={20} /></div>
-            <div><b>Secure Hosting</b><span>Full Cloudflare: D1, R2, KV, Workers di 300+ edge global.</span></div></div>
+            <div><b>Data terpusat</b><span>Kelola catatan kehadiran dan rekap tim dari satu tempat.</span></div></div>
         </div>
       </section>
 
       {/* CTA */}
       <div className="lp-cta-wrap">
         <div className="lp-cta">
-          <h2>Ready to Revolutionize Attendance?</h2>
+          <h2>Siap merapikan absensi tim?</h2>
           <p>Coba 14 hari gratis. Tanpa kartu kredit.</p>
           <a className="btn" href="#/daftar">Mulai Coba Gratis 14 Hari</a>
         </div>
@@ -337,18 +316,13 @@ export default function LandingPage() {
           <div>
             <Logo size={24} dark />
             <p className="lp-footer-desc" style={{ marginTop: 10 }}>Presensia — absensi karyawan presisi: GPS, selfie terverifikasi, shift fleksibel, dan payroll siap ekspor.</p>
-            <div className="lp-social">
-              <a aria-label="Facebook"><Facebook size={15} /></a>
-              <a aria-label="Twitter"><Twitter size={15} /></a>
-              <a aria-label="YouTube"><Youtube size={15} /></a>
-              <a aria-label="Instagram"><Instagram size={15} /></a>
-            </div>
+
           </div>
-          <div><h5>Company</h5><a href="#top">About</a><a href="#pricing">Pricing</a><a href="#how">Demo</a><a href="#footer">Support</a></div>
-          <div><h5>Legal</h5><a href="#footer">Terms of Use</a><a href="#footer">Privacy Policy</a><a href="#footer">SLA</a></div>
-          <div><h5>Kontak</h5><a href="#/masuk">Login</a><a href="#/daftar">Daftar</a><a href="#footer">presensia.app@yazastudios.com</a></div>
+          <div><h5>Produk</h5><a href="#top">Tentang Presensia</a><a href="#pricing">Paket</a><a href="#how">Cara kerja</a></div>
+          <div><h5>Akun</h5><a href="#/masuk">Masuk</a><a href="#/daftar">Daftar</a></div>
+          <div><h5>Kontak</h5><a href="mailto:presensia.app@yazastudios.com">presensia.app@yazastudios.com</a></div>
         </div>
-        <div className="lp-copy">© 2026 Presensia · Precision. Presence. World-Class Attendance. <ChevronRight size={12} style={{ verticalAlign: 'middle' }} /></div>
+        <div className="lp-copy">© 2026 Presensia · Absensi rapi, tim lebih terarah. <ChevronRight size={12} style={{ verticalAlign: 'middle' }} /></div>
       </footer>
     </div>
   );

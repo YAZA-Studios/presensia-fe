@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import { api, type HistoryRow } from '../api';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '../api';
 import type { Me } from '../App';
 
 const monthThis = (): string => new Date().toISOString().slice(0, 7);
@@ -10,13 +11,12 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default function HistoryTab({ me }: { me: Me }) {
   const [month, setMonth] = useState(monthThis());
-  const [rows, setRows] = useState<HistoryRow[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
-    api.history(month).then((r) => setRows(r.rows)).catch(() => setRows([])).finally(() => setLoading(false));
-  }, [month]);
+  // TanStack Query: cache per bulan, refetch otomatis saat online kembali/fokus.
+  const { data, isLoading } = useQuery({
+    queryKey: ['history', month],
+    queryFn: () => api.history(month),
+  });
+  const rows = data?.rows ?? [];
 
   const count = (s: string): number => rows.filter((r) => r.status === s).length;
   const isAdmin = me.role !== 'employee';
@@ -36,7 +36,7 @@ export default function HistoryTab({ me }: { me: Me }) {
           <span className="stat">Absen <strong>{count('absent')}</strong></span>
         </div>
       )}
-      {loading ? <p className="muted">Memuat…</p> : rows.length === 0 ? (
+      {isLoading ? <p className="muted">Memuat…</p> : rows.length === 0 ? (
         <p className="muted">Belum ada data absensi bulan ini.</p>
       ) : (
         <table className="table">

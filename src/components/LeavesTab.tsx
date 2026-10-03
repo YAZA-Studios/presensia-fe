@@ -1,16 +1,23 @@
-import { useEffect, useState } from 'react';
-import { api, ApiError, type Leave } from '../api';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Plus, X } from 'lucide-react';
+import { api, ApiError } from '../api';
 import type { Me } from '../App';
 
 export default function LeavesTab({ me }: { me: Me }) {
-  const [leaves, setLeaves] = useState<Leave[]>([]);
+  const qc = useQueryClient();
   const [form, setForm] = useState({ type: 'leave', dateFrom: '', dateTo: '', reason: '' });
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  // Form default tertutup — tabel pengajuan dulu.
+  const [showForm, setShowForm] = useState(false);
   const isAdmin = me.role !== 'employee';
 
-  const load = (): void => { api.leaves().then((r) => setLeaves(r.leaves)).catch(() => {}); };
-  useEffect(() => { load(); }, []);
+  const { data } = useQuery({ queryKey: ['leaves'], queryFn: () => api.leaves() });
+  const leaves = data?.leaves ?? [];
+  const { data: balData } = useQuery({ queryKey: ['leave-balance'], queryFn: () => api.leaveBalances() });
+  const myBalance = balData?.balances.find((b) => b.email === me.email);
+  const balances = balData?.balances ?? [];
 
   const submit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -18,16 +25,17 @@ export default function LeavesTab({ me }: { me: Me }) {
     try {
       await api.requestLeave({ ...form, reason: form.reason || undefined });
       setForm({ type: 'leave', dateFrom: '', dateTo: '', reason: '' });
-      load();
+      setShowForm(false);
+      void qc.invalidateQueries({ queryKey: ['leaves'] });
     } catch (err) { setError(err instanceof ApiError ? err.message : 'Gagal.'); } finally { setBusy(false); }
   };
 
   const review = async (id: string, approve: boolean): Promise<void> => {
-    try { await api.reviewLeave(id, approve); load(); }
+    try { await api.reviewLeave(id, approve); void qc.invalidateQueries({ queryKey: ['leaves'] }); }
     catch (err) { setError(err instanceof ApiError ? err.message : 'Gagal.'); }
   };
 
-  const statusBadge = (l: Leave): React.ReactNode =>
+  const statusBadge = (l: { status: string }): React.ReactNode =>
     l.status === 'pending' ? <span className="badge leave-pending">Menunggu Manager</span>
       : l.status === 'pending_hr' ? <span className="badge leave-pending">Menunggu HR/Admin</span>
       : l.status === 'approved' ? <span className="badge leave-approved">Disetujui</span>
@@ -36,8 +44,13 @@ export default function LeavesTab({ me }: { me: Me }) {
   return (
     <div className="two-col">
       <div className="card">
-        <h2>Ajukan Izin</h2>
-        <form className="grid-form" onSubmit={(e) => { void submit(e); }}>
+        <div className="form-toggle-row">
+          <h2>Ajukan Izin</h2>
+          <button className={`btn btn-sm ${showForm ? 'btn-ghost' : 'btn-primary'}`} onClick={() => setShowForm((v) => !v)}>
+            {showForm ? <><X size={14} /> Tutup</> : <><Plus size={14} /> Ajukan Izin</>}
+          </button>
+        </div>
+        {showForm && <form className="grid-form form-panel" onSubmit={(e) => { void submit(e); }}>
           <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
             <option value="leave">Cuti / Izin</option>
             <option value="sick">Sakit</option>
@@ -49,9 +62,32 @@ export default function LeavesTab({ me }: { me: Me }) {
           </div>
           <textarea placeholder="Alasan (opsional)" value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} rows={2} />
           <button className="btn btn-primary" disabled={busy}>{busy ? 'Mengirim…' : 'Kirim Pengajuan'}</button>
-        </form>
+        </form>}
         <p className="muted small">Pengajuan melebihi batas hari kerja yang diatur admin otomatis butuh persetujuan dua tingkat (manager → HR).</p>
         {error && <div className="error-box">{error}</div>}
+      </div>
+
+      <div className="card">
+        <h2>Saldo Cuti {balData ? balData.year : ''}</h2>
+        {isAdmin ? (
+          <table className="table" style={{ marginTop: 8 }}>
+            <thead><tr><th>Nama</th><th>Kuota</th><th>Terpakai</th><th>Sisa</th></tr></thead>
+            <tbody>
+              {balances.map((b) => (
+                <tr key={b.email}><td>{b.name}</td><td>{b.quota} hari</td><td>{b.used} hari</td>
+                  <td><b style={{ color: b.remaining <= 2 ? 'crimson' : undefined }}>{b.remaining} hari</b></td></tr>
+              ))}
+              {balances.length === 0 && <tr><td colSpan={4} className="muted">Belum ada data.</td></tr>}
+            </tbody>
+          </table>
+        ) : (
+          <div className="summary-kpis" style={{ marginTop: 10 }}>
+            <div><b>{myBalance?.quota ?? '—'}</b><span>Kuota (hari)</span></div>
+            <div><b>{myBalance?.used ?? '—'}</b><span>Terpakai</span></div>
+            <div><b>{myBalance?.remaining ?? '—'}</b><span>Sisa</span></div>
+          </div>
+        )}
+        <p className="muted small">Kuota bawaan 12 hari kerja/tahun; cuti disetujui otomatis mengurangi saldo.</p>
       </div>
 
       <div className="card">
