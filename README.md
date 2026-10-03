@@ -1,7 +1,7 @@
-# Presensia — Web Absensi Karyawan
+# Presensia — Web Absensi & Payroll Karyawan
 
-Frontend **Presensia**, SaaS absensi karyawan berbasis GPS + selfie.
-Judul/tagline produk: **“Presensia — Absensi Karyawan Online: GPS, Selfie & Rekap Otomatis.”**
+Frontend **Presensia**, SaaS absensi karyawan berbasis GPS + selfie dengan payroll otomatis (slip gaji, PPh 21, BPJS, THR).
+Judul/tagline produk: **“Presensia — Precision. Presence. Payroll.”**
 
 ## Stack Teknologi
 

@@ -11,7 +11,7 @@ export default defineConfig({
       manifest: {
         name: 'Presensia — Absensi Cerdas',
         short_name: 'Presensia',
-        description: 'Absensi GPS dengan geofencing ketat, selfie berkode anti-titip-absen, shift, approval cuti berjenjang, dan ekspor payroll.',
+        description: 'Absensi GPS geofencing ketat, selfie berkode anti-titip-absen, shift, cuti berjenjang, dan payroll otomatis: slip gaji, PPh 21, BPJS & THR.',
         theme_color: '#00C2A8',
         background_color: '#0A0F1A',
         display: 'standalone',

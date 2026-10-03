@@ -118,7 +118,7 @@ export default function LandingPage() {
         <div className="lp-hero-copy">
           <p className="lp-eyebrow">UNTUK TIM YANG TERUS BERGERAK</p>
           <h1>Absensi rapi.<br /><em>Tim lebih terarah.</em></h1>
-          <p className="lp-tagline">Kelola kehadiran, shift, dan pengajuan cuti dalam satu tempat. Dari absen pertama hingga rekap akhir bulan.</p>
+          <p className="lp-tagline">Kelola kehadiran, shift, cuti, dan payroll dalam satu tempat. Dari absen pertama hingga gajian.</p>
           <div className="lp-hero-ctas">
             <a className="btn btn-primary btn-lg" href="#/daftar">Coba Gratis</a>
             <a className="btn btn-secondary btn-lg" href="#how">Lihat cara kerja</a>
@@ -213,12 +213,12 @@ export default function LandingPage() {
           <div className="feat-visual"><div className="feat-blob" /><div className="mock"><FeaturePayroll /></div></div>
           <div className="feat-copy">
             <span className="feat-num">5.</span>
-            <h3>Integrated Payroll Pre-processing &amp; Export</h3>
-            <p>Jam kerja mentah menjadi komponen siap bayar: gross − istirahat = net, menit telat, dan lembur dengan multiplier hari libur. Ekspor CSV langsung ke sistem payroll.</p>
+            <h3>Payroll Otomatis: Slip Gaji hingga Bukti Potong</h3>
+            <p>Kunci periode, hitung draft, finalisasi — slip gaji jadi dengan PPh 21 TER (PP 58/2023), tarif Pasal 17 Desember, iuran BPJS, dan THR BR-13. Bukti potong 1721-A1 siap unduh dengan QR verifikasi.</p>
             <ul className="feat-list">
-              <li>{CHECK} Rekap bulanan per karyawan & per org</li>
-              <li>{CHECK} Overtime: minimal, pembulatan, multiplier</li>
-              <li>{CHECK} CSV UTF-8 siap Excel/Sheets</li>
+              <li>{CHECK} Slip gaji: gaji pokok, lembur, potongan, net</li>
+              <li>{CHECK} PPh 21 &amp; BPJS mengikuti config, tanpa spreadsheet</li>
+              <li>{CHECK} THR prorata + PDF 1721-A1 ber-QR verifikasi</li>
             </ul>
           </div>
         </div>
@@ -239,7 +239,7 @@ export default function LandingPage() {
           </div>
           <div className="hiw-step"><span className="hiw-step-num">3</span>
             <div className="hiw-icon i3"><LineChart size={26} /></div>
-            <h4>Monitor</h4><p>Dashboard real-time, approval cuti, dan ekspor payroll kapan saja.</p>
+            <h4>Monitor</h4><p>Dashboard real-time, approval cuti, dan payroll sampai slip gaji.</p>
           </div>
         </div>
       </section>
@@ -315,7 +315,7 @@ export default function LandingPage() {
         <div className="lp-footer-grid">
           <div>
             <Logo size={24} dark />
-            <p className="lp-footer-desc" style={{ marginTop: 10 }}>Presensia — absensi karyawan presisi: GPS, selfie terverifikasi, shift fleksibel, dan payroll siap ekspor.</p>
+            <p className="lp-footer-desc" style={{ marginTop: 10 }}>Presensia — absensi karyawan presisi: GPS, selfie terverifikasi, shift fleksibel, dan payroll otomatis sampai bukti potong pajak.</p>
 
           </div>
           <div><h5>Produk</h5><a href="#top">Tentang Presensia</a><a href="#pricing">Paket</a><a href="#how">Cara kerja</a></div>

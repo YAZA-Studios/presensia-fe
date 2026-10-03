@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShieldCheck, MapPin, Timer, FileSpreadsheet, ArrowRight, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, MapPin, Timer, Banknote, ArrowRight, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 import { api, ApiError } from '../api';
 import { Logo } from '../components/Brand';
 
@@ -64,14 +64,14 @@ export default function AuthPage({ mode, onAuthed }: {
       <aside className="auth-side">
         <Logo size={30} dark />
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <h2>Precision. Presence.<br />World-Class Attendance.</h2>
-          <p>Absensi GPS dengan geofencing ketat, selfie berkode anti-titip-absen, approval cuti berjenjang, dan ekspor payroll siap pakai.</p>
+          <h2>Precision. Presence.<br />Payroll.</h2>
+          <p>Absensi GPS ber-geofencing ketat dengan selfie berkode anti-titip-absen — sampai payroll: slip gaji, PPh 21, BPJS, dan THR dihitung otomatis.</p>
         </div>
         <div className="auth-points">
           <div className="auth-point"><MapPin size={17} /> Geofencing + validasi akurasi anti fake-GPS</div>
           <div className="auth-point"><ShieldCheck size={17} /> Kode verifikasi selfie — titip absen otomatis gagal</div>
           <div className="auth-point"><Timer size={17} /> Shift lintas tengah malam &amp; lembur terhitung otomatis</div>
-          <div className="auth-point"><FileSpreadsheet size={17} /> Rekap &amp; timesheet payroll siap unduh</div>
+          <div className="auth-point"><Banknote size={17} /> Payroll otomatis: slip gaji, PPh 21, BPJS &amp; THR</div>
         </div>
       </aside>
 
